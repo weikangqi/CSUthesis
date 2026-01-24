@@ -154,6 +154,8 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \newCJKfontfamily[hei]\heiti{SimHei}[AutoFakeBold]
 \let\songti\relax
 \newCJKfontfamily[song]\songti{SimSun}[AutoFakeBold]
+\let\kaishu\relax
+\newCJKfontfamily[kai]\kaishu{KaiTi}[AutoFakeBold]
 \let\TimesNewRoman\relax
 \newCJKfontfamily[TimesNewRoman]\TimesNewRoman{Times New Roman}[AutoFakeBold]
 
