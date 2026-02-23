@@ -1,0 +1,4 @@
+interface:
+  display_name: "LaTeX Build Folder"
+  short_description: "Build LaTeX outputs into the build folder"
+  default_prompt: "Use -build-folder to compile LaTeX into the build folder."
