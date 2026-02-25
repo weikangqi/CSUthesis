@@ -21,6 +21,19 @@ The author has a previously published English academic paper.
 The LaTeX source code of that paper may be used as an academic reference.
 Since the previous work is written in English, translation into Chinese is permitted.
 
+The LaTeX source of the published paper is located at:
+`StereoMulti3DPose/paper/main.tex`
+
+The published paper project is stored under the folder:
+`StereoMulti3DPose/`
+
+Folder purposes:
+
+- `StereoMulti3DPose/paper/`: LaTeX source of the published English paper (main entry `main.tex`), bibliography file (`refs.bib`), and the IEEE template class (`IEEEtran.cls`). This is the primary reference when reusing structure, formulations, and experimental descriptions.
+- `StereoMulti3DPose/figures/`: Figures used by the paper (e.g., pipeline diagram, ablations, qualitative results). These files can be reused as references when recreating thesis figures (but captions and text should be rewritten in Chinese academic style).
+- `StereoMulti3DPose/authors/`: Author photos and related assets used for the paper PDF.
+- `StereoMulti3DPose/build/`: Compiled outputs of the paper (e.g., `main.pdf`) and intermediate build artifacts. These are not thesis sources and should generally not be modified; they are useful for quickly checking the final paper rendering.
+
 The overall logical structure and section organization may be preserved where appropriate.
 Structural alignment with the previous work is allowed.
 
