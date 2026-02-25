@@ -1,5 +1,8 @@
 {
     "latex-workshop.latex.outDir": "build",
+    "latex-workshop.latex.build.forceRecipeUsage": true,
+    "latex-workshop.latex.build.enableMagicComments": false,
+    "latex-workshop.latex.recipe.default": "XeLaTeX (latexmk)",
     "latex-workshop.latex.tools": [
         {
             "name": "xelatexmk",
@@ -9,8 +12,9 @@
                 "-synctex=1",
                 "-interaction=nonstopmode",
                 "-file-line-error",
-                "-outdir=build",
-                "csuthesis_main"
+                "-outdir=%OUTDIR%",
+                "-auxdir=%OUTDIR%",
+                "%DOC%"
             ],
             "env": {}
         },
@@ -21,8 +25,8 @@
                 "-synctex=1",
                 "-interaction=nonstopmode",
                 "-file-line-error",
-                "-output-directory=build",
-                "csuthesis_main"
+                "-output-directory=%OUTDIR%",
+                "%DOC%"
             ],
             "env": {}
         },
@@ -30,7 +34,7 @@
             "name": "bibtex",
             "command": "bibtex",
             "args": [
-                "build/csuthesis_main"
+                "%OUTDIR%/%DOCFILE%"
             ],
             "env": {}
         }
