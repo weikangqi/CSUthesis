@@ -79,7 +79,7 @@ RT-Pose\citess{ho2024rt}（Radar Tensor-based 3D Human Pose Estimation Benchmark
     \item 构建轻量化双目3D人体姿态估计框架StereoMulti3DPose，研究左右视图特征提取、跨视图信息交互与三维关节点回归的整体流程。
     \item 设计面向端侧部署的高效网络结构，在保证姿态估计精度的前提下，降低参数量、计算量与峰值内存占用，提高实时性与能效比。
     \item 探索知识蒸馏、量化等模型压缩策略及其与网络结构轻量化的协同方式，分析不同压缩方案对精度与效率的影响。
-    \item 基于复杂真实场景数据集（如RT-Pose）开展实验评估，验证所提方法在遮挡、弱纹理与光照变化等条件下的鲁棒性与泛化能力。
+    \item 基于复杂真实场景数据集（如RT-Pose）开展实验评估，验证所提方法在弱纹理与光照变化等条件下的鲁棒性与泛化能力。
 \end{itemize}
 \subsection{论文组织结构}
 全文结构安排如下：第一章介绍研究背景与意义，综述国内外研究现状，并给出本文研究内容与整体思路；第二章介绍与本文相关的理论基础与关键技术，包括深度学习基础、人体姿态估计、双目立体视觉以及轻量化网络设计等。其余章节将进一步给出本文方法的整体框架与关键模块实现，展示实验设置与结果分析，并在最后对全文工作进行总结与展望。
@@ -396,7 +396,7 @@ S_b = \frac{b}{8}N_p,\quad \frac{S_b}{S_{32}} = \frac{b}{32}
 \subsection{研究背景}
 在上一章对双目三维姿态估计与端侧轻量化技术的研究现状进行梳理后可以发现，三维人体姿态估计的研究重点正从单纯追求离线精度，逐步转向兼顾实时性、能效与可部署性的综合优化。在物联网与边缘计算驱动的应用场景中，系统通常需要在移动端或嵌入式设备上持续运行，例如服务机器人、人机交互终端、可穿戴设备与智能摄像头等。此类平台普遍受到算力、内存与功耗等资源约束，同时还面临隐私保护与网络不确定性等现实因素。因此，能够在端侧稳定运行的三维姿态估计方法必须在精度与效率之间建立可解释且可复现的权衡，而这也构成了本章研究的直接背景。
 
-从成像机理与几何约束角度看，双目相机为端侧三维姿态恢复提供了更具工程可行性的传感器基础。与单目方法相比，双目系统能够通过视差与三角测量显式引入深度线索，从而在一定程度上缓解单目三维重建固有的深度歧义；与多目系统相比，双目结构在硬件成本、安装复杂度与同步标定要求方面更易满足端侧部署条件。特别是在复杂遮挡、尺度变化与背景干扰较强的真实环境中，双目几何先验有助于提升三维姿态估计的可靠性与稳定性，使其更符合在线交互与安全监测等应用的需求。
+从成像机理与几何约束角度看，双目相机为端侧三维姿态恢复提供了更具工程可行性的传感器基础。与单目方法相比，双目系统能够通过视差与三角测量显式引入深度线索，从而在一定程度上缓解单目三维重建固有的深度歧义；与多目系统相比，双目结构在硬件成本、安装复杂度与同步标定要求方面更易满足端侧部署条件。面对尺度变化与背景干扰较强的真实环境，双目几何先验有助于提升三维姿态估计的可靠性与稳定性，使其更符合在线交互与安全监测等应用的需求。
 
 然而，双目约束并不天然等价于端侧友好。现有许多双目深度或三维重建方法仍依赖高维代价体构建与密集正则化，往往需要三维卷积或大规模迭代优化才能获得较高精度，这会带来显存占用高、访存压力大与推理延迟不可控等问题。另一方面，若直接采用左右对称的双分支结构分别完成特征提取与姿态预测，骨干网络与多尺度融合模块的计算量将近似倍增，导致大量跨视图冗余计算；在多人场景中，该冗余会随实例数增加而放大，进一步削弱端侧实时性，并使系统时延随场景复杂度产生明显波动。
 
@@ -404,28 +404,340 @@ S_b = \frac{b}{8}N_p,\quad \frac{S_b}{S_{32}} = \frac{b}{32}
 
 因此，本章将在后续小节中首先对端侧双目三维姿态估计的计算瓶颈与误差来源进行分析，随后给出面向效率的非对称网络设计方案，并进一步介绍极线约束下的跨视图特征增强与姿态--深度细化策略，最后通过实验评估验证所提出设计在精度与效率方面的综合优势。
 \subsection{问题分析}
-\subsection{单目深度估计的尺度模糊问题}
-单目深度估计旨在从单幅图像中恢复场景的深度结构或像素级深度图。然而，从成像几何角度看，单目成像属于典型的透视投影过程：对于相机内参矩阵$\mathbf{K}$与三维点$\mathbf{P}=[X,Y,Z]^\top$，其像素坐标$\mathbf{p}=[u,v,1]^\top$满足
+\subsubsection{单目人体姿态估计的尺度模糊问题}
+单目三维人体姿态估计旨在从单幅图像中恢复人体各关节在三维空间中的位置（通常以相机坐标系下的$\hat{\mathbf{X}}_k=[\hat{X}_k,\hat{Y}_k,\hat{Z}_k]^\top$表示），从而支持动作分析、交互控制与安全监测等应用。其核心困难在于，单目成像仅提供二维投影观测，深度维度不可直接观测，使得从2D到3D的恢复存在本质的几何不适定性。对于相机内参矩阵$\mathbf{K}$与三维点$\mathbf{P}=[X,Y,Z]^\top$，其像素坐标$\mathbf{p}=[u,v,1]^\top$满足
 \begin{equation}
 Z\mathbf{p}=\mathbf{K}\mathbf{P}.
 \label{eq:mono_projection}
 \end{equation}
-式\eqref{eq:mono_projection}表明，对于给定像素$\mathbf{p}$，三维点$\mathbf{P}$仅能确定在一条从相机光心出发的视线（ray）上，其沿视线方向的距离$Z$无法由单幅图像唯一确定。换言之，单目观测天然缺失绝对尺度信息，深度估计存在不可观测性。
+式\eqref{eq:mono_projection}表明，对于给定像素$\mathbf{p}$，三维点$\mathbf{P}$仅能确定在一条从相机光心出发的视线（ray）上，其沿视线方向的距离$Z$无法由单幅图像唯一确定。换言之，单目观测仅能约束关节的二维方向与相对结构，而\textbf{绝对深度与米制尺度不可由单帧观测唯一确定}，从而导致三维姿态存在固有的尺度模糊。
 
-进一步地，即便引入学习先验或利用时序/多帧的光度一致性约束，单目深度仍普遍存在\textbf{尺度模糊（scale ambiguity）}：在仅依赖投影一致性的条件下，若将场景的三维结构按比例因子$\alpha>0$整体缩放，同时将相机的平移量按相同因子缩放，则其在图像上的投影保持不变，从而无法仅凭单目观测恢复真实的米制尺度。该性质意味着模型往往只能稳定输出“相对深度”或“尺度归一化深度”，而绝对深度需要额外信息（例如已知相机基线、已知物体尺寸、惯性/里程计约束或多视角几何）才能确定。
+进一步地，即便引入学习先验或利用时序约束，单目三维姿态仍普遍存在\textbf{尺度模糊（scale ambiguity）}：在仅依赖投影一致性的条件下，若将三维结构按比例因子$\alpha>0$整体缩放，并将相机与人体的相对平移按相同因子缩放，则其在图像上的投影保持不变。该性质意味着模型往往只能稳定输出“根相对（root-relative）”或“尺度归一化（scale-normalized）”的三维姿态，而当任务需要输出与物理空间一致的三维坐标（例如跌倒监测、人与机器人安全距离判断）时，缺乏绝对尺度会显著限制模型的可用性。
 
-尺度模糊问题在三维人体姿态估计中尤为突出。对于以单目图像为输入的3D姿态回归或2D-to-3D提升方法，网络通常依赖人体形状与动作的统计先验来“猜测”关节深度，但在视角变化、人体尺度差异与遮挡条件下容易产生尺度漂移，导致同一动作在不同距离或不同个体上的三维恢复不稳定；同时，当任务需要输出与物理空间一致的三维坐标（例如跌倒监测、人与机器人安全距离判断）时，缺乏绝对尺度会显著限制模型的可用性。因此，为获得具有米制意义且可跨场景泛化的深度线索，本研究进一步引入双目立体几何约束，以利用视差与三角测量从根源上消除单目尺度不确定性。
-\subsection{多目深度估计的问题}
-%多目多视角，相机只能固定在特定场景上，对于机器人之类的场景无法使用。
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\textwidth]{images/mono_scale_ambiguity.png}
+  \caption{单目三维人体姿态估计的尺度模糊示意图}
+  \label{fig:mono_scale_ambiguity}
+\end{figure}
 
-\subsection{现有基于双目深度估计的问题}
-\subsubsection{先进行深度估计叠加2D人体姿态估计}
-%计算冗余，因为深度估计计算的是稠密的深度信息，我们只需要估计特定的2D人体关键点的深度信息
+如图\ref{fig:mono_scale_ambiguity}所示，单目观测只提供从相机光心出发的视线方向约束：同一像素对应的三维点可以位于该视线上的任意位置。以人体身高为例，在针孔模型下，人体在图像中的像素高度$h$与真实身高$H$、距相机的深度$Z$近似满足$h\propto \frac{fH}{Z}$。因此，当观测到相同的投影高度$h$时，不同身高的个体将对应不同的真实深度$Z$；例如成年人（$H_1$）与儿童（$H_2$）在图像中的投影高度可能相同，但其真实距离满足$Z_1/Z_2 \approx H_1/H_2$，从而仅凭单目图像无法恢复绝对距离与米制尺度。同理，对于三维人体姿态，若仅依赖2D关键点或外观特征，网络往往只能学习与训练分布一致的相对尺度，并在跨场景、跨相机参数或不同体型人群下产生尺度漂移。为获得具有米制意义且可跨场景泛化的深度线索，本文进一步引入双目立体几何约束，以利用视差与三角测量从根源上消除单目尺度不确定性。
+
+\subsubsection{多目人体姿态估计的问题}
+多目三维人体姿态估计通常指在$V\ge 3$个相机视角下同时观测同一人体，通过跨视角几何约束恢复关节三维坐标。典型流程是先在每个视图上检测2D关键点$\hat{\mathbf{p}}_{k,i}$，再在已知内外参的条件下对每个关节进行三角化。以最小化重投影误差为例，其形式可写为
+\begin{equation}
+\hat{\mathbf{X}}_{k}=\arg\min_{\mathbf{X}} \sum_{i=1}^{V}\left\| \pi\!\left(\mathbf{K}_i\left(\mathbf{R}_i\mathbf{X}+\mathbf{t}_i\right)\right)-\hat{\mathbf{p}}_{k,i}\right\|_{2}^{2},
+\label{eq:multi_view_triangulation}
+\end{equation}
+其中$\pi(\cdot)$为从齐次坐标到像素坐标的归一化投影算子。由于视角数量增加能够显著提升可见性并缓解遮挡，多目系统在受控环境（如动作捕捉棚、实验室采集与固定式安防场景）中可获得较高的三维姿态精度与稳定性。然而，在面向端侧部署的在线应用中，多目人体姿态估计仍面临一系列难以回避的工程瓶颈。
+
+首先，多目系统对\textbf{硬件部署与标定同步}提出了更高要求。多相机阵列需要稳定的几何构型与严格的时间同步，否则跨视图的对应关系将因曝光差异、滚动快门、时钟漂移等因素产生系统性偏差，进而破坏一致性约束并引入难以建模的噪声。与此同时，相机数量的增加会显著提升传感器成本、安装复杂度与功耗占用，并对边缘设备的接口带宽与数据搬运提出更严格的要求。在实际应用中，多目方案更适合固定场景（如动作捕捉棚、智能教室或安防场所）的离线/半离线重建；而在移动机器人、可穿戴设备等平台上，机位可用性受限且标定易受震动与温度变化影响，多目系统的稳定性与可维护性往往难以保证。
+
+其次，多目方案的\textbf{计算、带宽与系统时延随视图数快速增长}。在多人场景下，需要对每个视图执行2D检测并进行跨视图关联与三角化，同时还可能需要在视图层面进行遮挡建模、置信度筛选与异常点剔除。随着$V$增加，端到端链路不仅计算量增大，输入数据吞吐与跨设备数据搬运也会显著上升，使得系统难以在资源受限设备上长期稳定运行。此外，在线应用对时延波动敏感，多目系统在同步、丢帧或个别视角失效时容易出现性能骤降，影响工程可用性。
+
+最后，多目系统在开放环境下还面临\textbf{跨视图外观差异与实例一致性维护}的挑战。不同相机的曝光、白平衡与成像噪声差异会影响2D关键点检测稳定性；在拥挤与遮挡场景中，跨视图实例匹配错误会直接导致三角化失败或产生离群三维点。尽管可以通过更强的特征、时序跟踪或全局优化缓解上述问题，但这通常意味着更复杂的系统设计与更高的计算开销，不利于端侧轻量化部署。
+
+综上所述，多目人体姿态估计虽然在精度与可见性方面具有优势，但其硬件部署门槛、同步标定要求与系统资源开销，使其难以直接满足端侧多人三维人体姿态估计的工程约束。因此，本文选择以双目立体几何为基础，在可获得绝对尺度与有效深度线索的同时，将传感器复杂度与跨视图计算控制在更可落地的范围内。
+
+\subsubsection{现有基于双目人体姿态估计的问题}
+双目相机能够通过视差提供绝对尺度，是端侧三维人体姿态估计更具工程可行性的传感器选择。然而，现有双目人体姿态估计方法在端侧部署时仍存在计算冗余、系统复杂度高与鲁棒性不足等问题，主要体现在以下几个方面。
+
+\paragraph{基于稠密深度先验的级联范式}
+一种直观的双目三维人体姿态估计思路是采用“深度先验 + 2D姿态”的级联流程：首先利用双目深度估计网络或立体匹配算法获得整幅图像的稠密视差/深度图$\hat{d}(\mathbf{p})$或$\hat{Z}(\mathbf{p})$，随后采用单目2D人体姿态估计器得到关节像素坐标$\hat{\mathbf{p}}_k=[\hat{u}_k,\hat{v}_k]^\top$，最后在关节处采样深度并通过反投影得到三维关节位置。
+\textbf{该两阶段级联流程如图~\ref{fig:two_stage_dualocular_pipeline}所示。}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{images/Two-Stage_Dualocular_Human_Pose_Estimation.png}
+  \caption{基于稠密深度先验的双目两阶段三维人体姿态估计流程示意图}
+  \label{fig:two_stage_dualocular_pipeline}
+\end{figure}
+
+以立体校正后的双目相机为例，设焦距为$f$、基线为$B$，则深度与视差满足
+\begin{equation}
+\hat{Z}(\mathbf{p})=\frac{fB}{\hat{d}(\mathbf{p})}.
+\label{eq:depth_from_disp}
+\end{equation}
+给定相机内参矩阵$\mathbf{K}$与齐次像素坐标$\tilde{\mathbf{p}}_k=[\hat{u}_k,\hat{v}_k,1]^\top$，对应的三维关节估计可写为
+\begin{equation}
+\hat{\mathbf{X}}_k = \hat{Z}(\hat{\mathbf{p}}_k)\mathbf{K}^{-1}\tilde{\mathbf{p}}_k .
+\label{eq:joint_backproject}
+\end{equation}
+该流程实现简单，且能够在几何意义上输出具有米制尺度的三维坐标，因此在工程上具有一定吸引力。然而，将稠密深度估计作为前置模块并与2D姿态简单叠加，会在端侧多人场景中暴露出明显的效率与精度问题。
+
+第一，\textbf{计算冗余显著且难以随任务需求自适应}。稠密深度估计以像素为单位输出$H\times W$的深度图，并通常需要在较大的视差范围上进行匹配与正则化，其计算与内存开销主要由图像分辨率与视差范围决定，与实际需要的关节数量无关。对于多人姿态任务，最终仅需为每个目标的有限关键点集合$\{\mathbf{p}_k\}_{k=1}^{K}$恢复深度，其中$K$通常为$17$或$24$等常数。若直接计算全图深度，再对少量关键点采样，则大量像素的匹配计算不会对最终三维关节精度产生直接贡献，导致端侧推理时延与功耗被“无效像素”主导；当输入分辨率提高以满足2D关键点定位需求时，该冗余将进一步放大。
+
+第二，\textbf{级联结构的误差传播与不一致监督会导致三维关节不稳定}。由式\eqref{eq:depth_from_disp}可知，当视差估计存在误差$\delta d$时，深度误差近似满足
+\begin{equation}
+\delta Z \approx \left|\frac{\partial Z}{\partial d}\right|\delta d = \frac{fB}{d^2}\delta d,
+\label{eq:depth_error_propagation}
+\end{equation}
+这意味着在远距离（小视差）区域，亚像素级视差误差也会被放大为较大的深度波动。进一步代入式\eqref{eq:joint_backproject}，三维关节误差由深度误差与像素定位误差共同决定：一方面，2D关键点在遮挡、运动模糊和弱纹理条件下易产生抖动，使得采样位置落入深度图的误匹配区域或深度不连续边缘；另一方面，深度网络的优化目标通常是像素级重投影误差或视差回归损失，其最优解并不必然在人体关节区域具有最小误差，尤其在衣物褶皱、细肢体结构和自遮挡处，深度图可能出现孔洞、飞点（flying pixels）或边界泄漏，从而导致关节深度在时间上产生跳变。由于级联方法缺乏从“关节三维误差”到“深度估计”的端到端反馈，系统难以针对关键点区域进行定向纠错，三维姿态往往呈现对场景与成像条件敏感的非平滑行为。
+
+第三，\textbf{两阶段模型带来额外的系统集成开销与端侧资源压力}。在端侧部署中，稠密深度网络与2D姿态网络通常各自包含多尺度特征提取、上下采样与后处理模块，简单串联会导致参数量、激活占用与访存带宽叠加；同时，深度图输出到关节深度采样之间还可能需要插值、滤波、置信度筛选与空洞填补等步骤，以缓解离散化与噪声对关节的影响，这些操作会增加不可忽略的CPU/GPU开销并引入额外时延。更重要的是，该级联结构无法充分共享双目两视图的中间特征表示，使得跨视图信息在深度阶段与姿态阶段被重复建模，进一步降低整体能效比。
+
+\paragraph{代价体正则化带来的端侧不可承受开销}
+除级联范式外，部分端到端立体方法尝试在特征空间构建立体匹配代价体，并通过三维卷积或迭代优化进行正则化后再回归深度或直接回归三维关节。此类方法往往需要在较大视差范围内进行跨视图交互，其代价体规模随分辨率与视差搜索范围增长，易造成显存占用高、访存压力大与推理时延不可控，难以在移动端或低功耗NPU上稳定运行。即便通过降低分辨率或缩小搜索范围控制开销，也可能因细肢体结构与关键点邻域深度不连续而带来精度损失。
+
+\paragraph{左右对称双分支与跨视图冗余可视化}
+在网络结构上，许多双目姿态方法采用左右对称的双分支骨干分别提取特征，再进行融合或匹配。这种设计虽然直观，但会使骨干网络与多尺度融合模块的计算量近似翻倍，并引入大量跨视图冗余表征。在多人场景中，若后续还需进行实例级关联或多阶段细化，则系统开销会进一步叠加，导致端侧实时性不足且时延随场景复杂度波动明显。为直观评估“左右视图内容高度相似”所带来的冗余，我们将同一双目输入分别送入全量 CSPDarknet 骨干，提取关键点热力图，结果如图~\ref{fig:stereo_heatmap_redundancy} 所示：左右视图的响应分布与峰值位置高度重叠，说明两套全量骨干在信息增益上非常有限，却会带来近乎两倍的参数量与 FLOPs，显著挤占端侧算力与内存带宽。这一可视化证据为后续左重右轻的非对称设计提供了直接动机。
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[t]{0.47\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/Left_perspective_heatmap_visualization.png}
+    \caption{左视图热力图}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.47\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/Right_perspective_heatmap_visualization.png}
+    \caption{右视图热力图}
+  \end{subfigure}
+  \caption{左右视图热力图对比：响应分布高度重叠，提示双全量骨干的计算冗余}
+  \label{fig:stereo_heatmap_redundancy}
+\end{figure}
+
+因此，尽管现有双目方案能够在一定程度上缓解单目尺度不确定性，但在端侧部署时仍面临稠密计算冗余、代价体开销与跨视图冗余计算等问题。为此，本文在后续将探索以\textbf{关节任务为中心}的双目特征交互与深度细化策略：在不显式构建全图稠密深度或高维代价体的前提下，通过极线约束下的跨视图特征增强模块（EFEM）与姿态引导的深度亚像素细化模块（PDRM），将有限计算资源集中于对三维关键点最敏感的区域与表征上，从而在精度与效率之间取得更适配端侧部署的平衡。
 
 \subsection{轻量化非对称双目学习框架与网络结构设计}
+\subsubsection{整体框架与端到端流程}
+为在端侧场景中同时兼顾几何精度与实时性，本文提出的 StereoMulti3DPose 以“\textbf{关节任务为中心}”组织双目特征交互与深度细化：输入为立体校正后的左右视图，首先经非对称双目 backbone 提取多尺度特征金字塔$\{\mathbf{F}^l_s\}$与$\{\mathbf{F}^r_s\}$；随后在主尺度特征上引入 EFEM（极线特征增强模块），在极线约束下将跨视图匹配从二维搜索降为一维视差窗口搜索，并以右分支特征为查询、左分支特征为键和值完成交叉注意力聚合，从而向右分支注入几何一致性信息并得到增强表征；在此基础上，PDRM（姿态引导的深度亚像素细化模块）进一步结合姿态先验在受限视差窗口内细化视差/深度估计；最终由预测头输出二维关键点（或热力图）、对应深度/视差以及三维关节坐标。训练阶段联合姿态监督（2D/3D 关键点）、深度/视差回归，以及跨分支表征一致性约束，使轻量分支在不增加推理开销的前提下获得更强的几何感知能力。
+
+\subsubsection{非对称双目Backbone设计}
+如图~\ref{fig:stereo_heatmap_redundancy} 所示，左右视图在高容量骨干下的响应分布高度重叠，说明“左右各一套全量骨干”的信息增益有限而计算冗余显著。基于此，本文采用“左重右轻”的非对称双分支主干：左分支（全量分支）使用 YOLO 风格的高容量 backbone（如 CSPDarknet 系列）以更宽通道与更强表征能力提取高保真语义与几何特征，并作为跨视图交互的主要信息源；右分支（小分支）采用结构同构的轻量化 backbone（对通道宽度与 stage 深度进行缩减），在保持算子一致性与特征层级对齐的前提下显著降低 FLOPs 与访存开销，便于端侧部署。两分支在相同步幅设置下输出多尺度特征$\{\mathbf{F}^l_s\},\{\mathbf{F}^r_s\}$，并通过后续模块中的$1\times1$投影对齐通道维度：左分支特征主要用于构造键/值以提供更稳定的匹配与更充分的可聚合信息，右分支特征作为查询以完成跨视图检索式增强。为进一步缩小轻量分支与全量分支的表征差距，训练阶段引入损失函数引导的特征对齐/蒸馏约束，从而在不改变推理结构的情况下提升整体鲁棒性与几何一致性。
 \subsubsection{极线特征增强模块（EFEM）}
-\subsubsection{姿态引导的深度亚像素细化模块（PDRM）}
-\subsection{在线特征蒸馏与跨分支表征一致性约束}
+\paragraph{设计目标与总体思路}
+EFEM（Epipolar Feature Enhancement Module）的核心目标是：在不构建高维代价体、不中断端侧实时性的前提下，沿极线方向建立低开销的跨视图注意力，显式增强与关键点相关的几何一致性。这一目标紧扣前述两类矛盾：全图稠密匹配带来的计算冗余，以及左右对称分支导致的重复特征开销。考虑到左视图由全量分支提取、表征更充分，EFEM以右视图特征作为查询，并以左视图特征构造键和值，把跨视图交互约束在水平扫描线上，通过一维注意力将左视图的几何一致性信息注入右分支表征，为后续深度细化提供判别性输入。为便于理解该计算过程，图~\ref{fig:efem_crossattention} 给出了沿同一行进行相关性计算与加权聚合的示意。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{images/crossattention.png}
+  \caption{极线交叉注意力计算示意图：右视图特征作为 Query，左视图特征作为 Key/Value，沿水平极线在视差窗口内计算权重并对 Value 加权聚合。}
+  \label{fig:efem_crossattention}
+\end{figure}
+
+\paragraph{输入压缩与查询-键构建}
+设左右分支特征为$\mathbf{F}_l,\mathbf{F}_r\in\mathbb{R}^{C\times H\times W}$。由于整体框架采用“左重右轻”的非对称分工，EFEM 的目标是以低开销方式将\textbf{左分支（全量分支）的高保真几何/语义信息回填并增强右分支（小分支）表征}。因此，我们将右分支特征作为查询（Query）以其当前位置为“锚点”沿极线发起匹配，而将左分支特征构造成键/值（Key/Value）作为可检索的“记忆库”：键用于提供更强判别性的跨视图匹配依据，值用于在匹配权重引导下输出更充分的可聚合信息。为构造沿极线的交叉注意力，先对通道做轻量压缩并区分查询/键/值：
+\begin{equation}
+\mathbf{q}=\phi_q(\mathbf{F}_r),\quad \mathbf{k}=\phi_k(\mathbf{F}_l),\quad \mathbf{v}=\phi_v(\mathbf{F}_l),\quad \mathbf{q},\mathbf{k},\mathbf{v}\in\mathbb{R}^{C'\times H\times W},
+\label{eq:efem_proj}
+\end{equation}
+其中$\phi_q,\phi_k,\phi_v$为$1\times1$卷积+归一化（可选分组卷积），分别将右分支特征映射为查询向量，并将左分支特征映射为键和值，以在控制计算开销的同时对齐跨视图表征维度。
+
+\paragraph{极线注意力与加权聚合}
+在立体校正条件下，搜索限定在同一行$y=v$的视差窗口$\mathcal{D}=\{0,\ldots,D-1\}$。对每个位置$(u,v)$计算右视图查询$\mathbf{q}(u,v)$与左视图键$\mathbf{k}(u+d,v)$的相关分数：
+\begin{equation}
+s(u,v,d)=\frac{\langle \mathbf{q}(u,v),\mathbf{k}(u+d,v)\rangle}{\sqrt{C'}},\quad d\in\mathcal{D},
+\label{eq:efem_score}
+\end{equation}
+并在视差维做 softmax 得到注意力权重
+\begin{equation}
+\alpha(u,v,d)=\frac{\exp(s(u,v,d))}{\sum_{d'\in\mathcal{D}}\exp(s(u,v,d'))}.
+\label{eq:efem_weight}
+\end{equation}
+利用注意力权重对左视图的值向量$\mathbf{v}$加权聚合，得到与$(u,v)$对齐的几何增强向量
+\begin{equation}
+\mathbf{g}(u,v)=\sum_{d\in\mathcal{D}}\alpha(u,v,d)\mathbf{v}(u+d,v).
+\label{eq:efem_agg}
+\end{equation}
+图~\ref{fig:efem_epipolar_weighted_aggregation} 对上述“沿极线计算注意力权重并加权汇聚左视图信息以增强右分支表征”的过程进行了直观示意。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{images/Epipolar_attention_and_weighted_aggregation.png}
+  \caption{极线注意力与加权聚合过程示意图}
+  \label{fig:efem_epipolar_weighted_aggregation}
+\end{figure}
+再与右视图局部特征融合输出
+\begin{equation}
+\hat{\mathbf{q}}=\psi\!\left([\mathbf{q},\mathbf{g}]\right),
+\label{eq:efem_fuse}
+\end{equation}
+其中$\psi(\cdot)$为$1\times1$卷积，用于将右视图局部语义$\mathbf{q}$与沿极线汇聚得到的几何增强向量$\mathbf{g}$进行通道融合与映射，输出供后续模块使用的增强特征$\hat{\mathbf{q}}$。
+
+\paragraph{复杂度分析与端侧友好性}
+在默认全宽搜索时，复杂度为$\mathcal{O}(H\,W^{2}C')$，但特征通常在$1/16$或更低分辨率上计算，$W$显著缩小；若根据场景设定最大视差$D_{\max}$，搜索可裁剪为$\mathcal{O}(H\,W\,D_{\max}C')$，便于在移动SoC/NPU上保持确定时延。EFEM输出的$\hat{\mathbf{q}}$携带“沿极线的跨视图一致性”信息，直接供后续PDRM使用，从而在不增加代价体的情况下提升深度与姿态的协同精度。
+\subsubsection{可微加权三角化姿态求解器}
+可微加权三角化姿态求解器的核心目标是：在\textbf{双目视角}条件下，将左右视图的二维关键点观测与相机模型融合为三维关节坐标，并在深度学习框架中保持端到端可训练性。为此，本节将传统双目三角化改写为\textbf{可微的加权最小二乘问题}，并引入由特征图预测的视角置信度权重，以增强在遮挡与误检情况下的鲁棒性。
+
+\paragraph{设计目标与总体思路}
+在深度学习框架下直接使用传统三角化存在两个关键问题：1）二维关键点检测存在噪声，遮挡、模糊或复杂姿态会带来较大误差；2）若通过$\arg\max$从热力图提取二维坐标则不可导，三维监督信号无法反向传播至热力图网络。具体而言，若将热力图峰值位置作为二维观测
+\begin{equation}
+(u_{c,j},v_{c,j})=\arg\max\limits_{(u,v)\in\Omega} H_{c,j}(u,v),
+\label{eq:pdrm_argmax}
+\end{equation}
+其中$c\in\{l,r\}$分别表示左/右视图，$(u_{c,j},v_{c,j})$为第$j$个关节在视图$c$中的像素坐标，$H$为神经网络Backbone预测的关节点热力图。由于$(u_{c,j},v_{c,j})$是离散索引，对$H_{c,j}$几乎处处不可导，此时无论采用双目深度测量公式（视差$ d_j=u_{l,j}-u_{r,j} $与深度$ Z_j=\frac{fB}{d_j+\epsilon} $，见式\eqref{eq:depth_from_disp}）还是采用后续的三角化线性系统求解（$\mathbf{A}_{c,j}$由$u_{c,j},v_{c,j}$构造），三维监督对热力图的梯度都将被$\arg\max$截断。以双目深度测量为例，其梯度链路满足
+\begin{equation}
+\frac{\partial \mathcal{L}_{3D}}{\partial H_{c,j}}
+=\frac{\partial \mathcal{L}_{3D}}{\partial Z_j}\cdot
+\frac{\partial Z_j}{\partial d_j}\cdot
+\frac{\partial d_j}{\partial u_{c,j}}\cdot
+\frac{\partial u_{c,j}}{\partial H_{c,j}}
+\approx 0,
+\label{eq:pdrm_grad_block}
+\end{equation}
+其中$\frac{\partial u_{c,j}}{\partial H_{c,j}}$在$\arg\max$下为零或不存在，导致三维误差无法有效反向更新关键点热力图分布。为此，本文采用可微加权三角化：使用 soft-argmax（见式\eqref{eq:pdrm_softarg_u}--\eqref{eq:pdrm_softarg_v}）从热力图中提取连续二维坐标以保证可微性，并为左右视图分配可学习置信度权重以增强鲁棒性；将三角化问题转化为加权最小二乘问题，并通过特征值分解求解三维点，从而实现端到端训练。
+
+\paragraph{符号定义}
+设符号如下：
+\begin{itemize}
+    \item $c\in\{l,r\}$ 表示左/右视图（双目时视图数量$C=2$）；
+    \item $j$ 表示关节索引；
+    \item $\mathbf{F}_c$ 表示第 $c$ 个视图的骨干特征图（Feature Map）；
+    \item $\mathbf{X}_j=[X_j,Y_j,Z_j]^T\in\mathbb{R}^3$ 为三维关节坐标；
+    \item $\tilde{\mathbf{X}}_j=[X_j,Y_j,Z_j,1]^T\in\mathbb{R}^4$ 为其齐次形式；
+    \item $\mathbf{x}_{c,j}=[u_{c,j},v_{c,j}]^T$ 为第 $c$ 个视图下的二维关键点；
+    \item $\tilde{\mathbf{x}}_{c,j}=[u_{c,j},v_{c,j},1]^T$ 为其齐次形式；
+    \item $\mathbf{P}_c\in\mathbb{R}^{3\times4}$ 为第 $c$ 个相机的投影矩阵；
+    \item $\phi_h(\cdot)$ 表示关键点热力图头（Heatmap Head），输出$H_{c,j}=\phi_h(\mathbf{F}_c)$；
+    \item $\phi_w(\cdot)$ 表示置信度预测头（Confidence Head），输出关节置信度 logit $\hat{s}_{c,j}=\phi_w(\mathbf{F}_c)$；
+    \item $w_{c,j}>0$ 为第 $c$ 个视图对关节 $j$ 的置信度权重。
+\end{itemize}
+设投影矩阵 $\mathbf{P}_c$ 的三行分别为
+\begin{equation}
+\mathbf{P}_c=
+\begin{bmatrix}
+\mathbf{p}_{1,c}^T\\
+\mathbf{p}_{2,c}^T\\
+\mathbf{p}_{3,c}^T
+\end{bmatrix}
+\label{eq:pdrm_P_rows}
+\end{equation}
+
+\paragraph{与热力图的可微连接}
+首先对热力图进行二维归一化，得到概率分布
+\begin{equation}
+p_{c,j}(u,v)=\frac{\exp(H_{c,j}(u,v))}{\sum\limits_{(u',v')\in\Omega}\exp(H_{c,j}(u',v'))}
+\label{eq:pdrm_softmax2d}
+\end{equation}
+其中$\Omega$为热力图的离散像素集合。soft-argmax 对应的二维坐标期望为
+\begin{align}
+u_{c,j}&=\sum\limits_{(u,v)\in\Omega} u\cdot p_{c,j}(u,v),
+\label{eq:pdrm_softarg_u}\\
+v_{c,j}&=\sum\limits_{(u,v)\in\Omega} v\cdot p_{c,j}(u,v).
+\label{eq:pdrm_softarg_v}
+\end{align}
+由于 softmax 与加权求和均为可微操作，故$\mathbf{x}_{c,j}$关于热力图$H_{c,j}$可导，从而三维监督损失能够端到端反向传播。
+
+\paragraph{投影约束与线性化}
+根据透视投影模型，在齐次坐标下有
+\begin{equation}
+\tilde{\mathbf{x}}_{c,j}\sim\mathbf{P}_c\tilde{\mathbf{X}}_j
+\label{eq:pdrm_proj}
+\end{equation}
+其中“$\sim$”表示两向量仅差一个尺度因子。为消除尺度因子，引入叉乘约束
+\begin{equation}
+\tilde{\mathbf{x}}_{c,j}\times(\mathbf{P}_c\tilde{\mathbf{X}}_j)=0
+\label{eq:pdrm_cross}
+\end{equation}
+展开后可得两条线性独立方程：
+\begin{align}
+(u_{c,j}\mathbf{p}_{3,c}^T-\mathbf{p}_{1,c}^T)\tilde{\mathbf{X}}_j&=0
+\label{eq:pdrm_linear_u}\\
+(v_{c,j}\mathbf{p}_{3,c}^T-\mathbf{p}_{2,c}^T)\tilde{\mathbf{X}}_j&=0
+\label{eq:pdrm_linear_v}
+\end{align}
+因此，第$c$个视图对关节$j$提供两个线性约束，可写为$\mathbf{A}_{c,j}\tilde{\mathbf{X}}_j=0$，其中
+\begin{equation}
+\mathbf{A}_{c,j}=
+\begin{bmatrix}
+u_{c,j}\mathbf{p}_{3,c}^T-\mathbf{p}_{1,c}^T\\
+v_{c,j}\mathbf{p}_{3,c}^T-\mathbf{p}_{2,c}^T
+\end{bmatrix}
+\label{eq:pdrm_Acj}
+\end{equation}
+
+\paragraph{双目线性系统}
+将左右两视图堆叠，可得整体线性系统
+\begin{equation}
+\mathbf{A}_j\tilde{\mathbf{X}}_j=0,\quad
+\mathbf{A}_j=
+\begin{bmatrix}
+\mathbf{A}_{l,j}\\
+\mathbf{A}_{r,j}
+\end{bmatrix}
+\in\mathbb{R}^{4\times4}
+\label{eq:pdrm_Aj}
+\end{equation}
+由于二维关键点定位误差、遮挡误检以及相机标定/同步误差等噪声因素，左右两视图给出的线性约束往往无法同时被严格满足，即一般不存在使$\mathbf{A}_j\tilde{\mathbf{X}}_j=\mathbf{0}$成立的非零精确解，因此转化为最小二乘问题：
+\begin{equation}
+\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{A}_j\tilde{\mathbf{X}}_j\|^2
+\label{eq:pdrm_ls}
+\end{equation}
+\noindent 其中约束$\|\tilde{\mathbf{X}}_j\|=1$用于消除齐次表示的比例不确定性：由于$\tilde{\mathbf{X}}_j$以齐次坐标形式出现，若$\tilde{\mathbf{X}}_j$为可行解，则任意非零标量$\alpha\tilde{\mathbf{X}}_j$也对应同一几何点；同时该约束也避免最小二乘在无约束情况下退化到平凡零解。这里的“比例不确定性”源自齐次线性方程的尺度自由度，并不等同于单目重建中的深度尺度模糊；在双目条件下，最终反齐次化后得到的欧式三维坐标仍由相机标定参数（如基线$B$与焦距$f$）确定其绝对尺度。
+
+\paragraph{加权最小二乘形式}
+为提高对噪声的鲁棒性，引入置信度权重$w_{c,j}$（双目场景同样常见）。在实际采集中，两视角的观测质量往往不对称：
+\begin{itemize}
+    \item 一侧关键点热力图峰值尖锐、另一侧发散或多峰；
+    \item 一侧发生人体自遮挡、出框或强反光导致误检；
+    \item 远距离小视差区域对像素误差更敏感，单侧抖动会被三角测量放大。
+\end{itemize}
+因此，给更可靠的视角更大的权重能够显著提升三维求解稳定性。本文令$w_{c,j}$由特征图$\mathbf{F}_c$经置信度预测头$\phi_w(\cdot)$直接预测，并通过 softplus 映射保证为正。softplus 是常用的正值约束函数，定义为 $\mathrm{softplus}(x)=\ln(1+e^{x})$，其输出恒为正且平滑可导，可避免使用指数映射导致的数值不稳定：
+\begin{equation}
+w_{c,j}=\mathrm{softplus}(\hat{s}_{c,j})+\epsilon
+\label{eq:pdrm_w_def}
+\end{equation}
+构造对角权重矩阵
+\begin{equation}
+\mathbf{W}_j=
+\mathrm{diag}(\sqrt{w_{l,j}},\sqrt{w_{l,j}},\sqrt{w_{r,j}},\sqrt{w_{r,j}})
+\label{eq:pdrm_Wj}
+\end{equation}
+\noindent 其中每个$w_{c,j}$在对角线上\textbf{重复两次}，是因为对同一关节$j$而言，每个视图$c\in\{l,r\}$会提供两条独立的线性约束（分别来自$u_{c,j}$与$v_{c,j}$对应的两行方程，见式\eqref{eq:pdrm_linear_u}--\eqref{eq:pdrm_linear_v}）。用$\mathbf{W}_j$左乘$\mathbf{A}_j$等价于对$\mathbf{A}_j$的每一行残差进行缩放，从而在最小二乘目标中实现对该视图两条约束的统一加权；同时采用$\sqrt{w_{c,j}}$而非$w_{c,j}$，可使目标函数展开为标准的加权残差平方和形式$\sum w_{c,j}\,r^2$。加权线性系统为
+\begin{equation}
+\mathbf{B}_j=\mathbf{W}_j\mathbf{A}_j
+\label{eq:pdrm_Bj}
+\end{equation}
+优化问题变为
+\begin{equation}
+\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{B}_j\tilde{\mathbf{X}}_j\|^2
+\label{eq:pdrm_wls}
+\end{equation}
+
+\paragraph{特征值求解}
+上述加权最小二乘问题具有闭式解。由于约束$\|\tilde{\mathbf{X}}_j\|=1$固定了齐次向量的尺度，可将目标函数转写为 Rayleigh 商并通过特征分解直接求得最优解，从而避免引入迭代优化带来的额外开销与不稳定性。
+展开目标函数：
+\begin{equation}
+\|\mathbf{B}_j\tilde{\mathbf{X}}_j\|^2=
+\tilde{\mathbf{X}}_j^T(\mathbf{B}_j^T\mathbf{B}_j)\tilde{\mathbf{X}}_j
+\label{eq:pdrm_quadratic}
+\end{equation}
+记
+\begin{equation}
+\mathbf{M}_j=\mathbf{B}_j^T\mathbf{B}_j
+\label{eq:pdrm_Mj}
+\end{equation}
+则问题转化为
+\begin{equation}
+\min_{\|\tilde{\mathbf{X}}_j\|=1}\tilde{\mathbf{X}}_j^T\mathbf{M}_j\tilde{\mathbf{X}}_j
+\label{eq:pdrm_rayleigh}
+\end{equation}
+根据 Rayleigh 商定理，最优解为$\mathbf{M}_j$最小特征值对应的特征向量：
+\begin{equation}
+\mathbf{M}_j\tilde{\mathbf{X}}_j=\lambda\tilde{\mathbf{X}}_j
+\label{eq:pdrm_eig}
+\end{equation}
+\noindent 根据 Rayleigh 商定理，上式中$\mathbf{M}_j$的最小特征值对应的特征向量使$\tilde{\mathbf{X}}_j^T\mathbf{M}_j\tilde{\mathbf{X}}_j$取得最小值，因此取该特征向量作为$\tilde{\mathbf{X}}_j$。该求解与经典 DLT 三角化中“取$\mathbf{B}_j$的最小奇异值对应右奇异向量”的 SVD 解法等价，因而具有数值稳定、计算高效的优点，并便于在自动微分框架中实现端到端训练。
+
+\paragraph{反齐次化}
+得到齐次解$\tilde{\mathbf{X}}_j=[X_h,Y_h,Z_h,W_h]^T$后，欧式三维坐标为
+\begin{equation}
+\mathbf{X}_j=
+\frac{1}{W_h}
+\begin{bmatrix}
+X_h\\
+Y_h\\
+Z_h
+\end{bmatrix}
+\label{eq:pdrm_dehom}
+\end{equation}
+
+\paragraph{小结}
+综上，本文面向双目三维姿态任务构建了可微加权三角化姿态求解器：首先通过 soft-argmax 将关键点热力图$H_{c,j}$转换为连续二维观测$\mathbf{x}_{c,j}$，避免$\arg\max$带来的梯度截断；随后由特征图$\mathbf{F}_c$经置信度预测头$\phi_w(\cdot)$得到视角权重$w_{c,j}$，用于在两视角质量不对称（遮挡、模糊、误检或远距离小视差敏感）时自适应调整约束贡献；在此基础上，将双目三角化统一为加权最小二乘形式$\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{W}_j\mathbf{A}_j\tilde{\mathbf{X}}_j\|^2$并以特征值/SVD 等价的闭式方式求解齐次三维点，最后经反齐次化得到欧式三维关节坐标$\mathbf{X}_j$。上述设计使三维几何监督能够端到端回传到热力图与置信度分支，从而提升三维关节估计的稳定性与鲁棒性。
+
+\subsubsection{在线特征蒸馏与跨分支表征一致性约束}
 \subsection{实验评估}
 \subsection{本章小结}
 \section{硬件感知部署与量化压缩 }

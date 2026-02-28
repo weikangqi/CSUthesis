@@ -126,3 +126,7 @@ Ensure notation consistency across chapters.
 
 The final writing must resemble a formal Chinese Master’s thesis,
 not a conference paper draft.
+
+## Compile 
+
+The compilation directory is set in the build directory

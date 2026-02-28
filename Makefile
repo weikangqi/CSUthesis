@@ -12,10 +12,15 @@ LATEXMK_OPT_PVC = $(LATEXMK_OPT_BASE) -pvc
 
 all: $(THESIS).pdf
 
-.PHONY : all cleanall pvc view wordcount git zip
+build: build/$(THESIS).pdf
+
+.PHONY : all cleanall pvc view wordcount git zip build
 
 $(THESIS).pdf : $(THESIS).tex $(TEX_DIR)/*.tex $(BIB_DIR)/*.bib CSUthesis.cls Makefile
 	-latexmk $(LATEXMK_OPT) $(THESIS)
+
+build/$(THESIS).pdf : $(THESIS).tex $(TEX_DIR)/*.tex $(BIB_DIR)/*.bib CSUthesis.cls Makefile
+	-latexmk $(LATEXMK_OPT) -outdir=build $(THESIS)
 
 pvc :
 	latexmk $(LATEXMK_OPT_PVC) $(THESIS)
