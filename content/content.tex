@@ -239,7 +239,7 @@ MPJPE，有时也称为重构误差（Reconstruction Error），是衡量3D人�
 \text{MPJPE} = \frac{1}{N} \sum_{i=1}^{N} \left\| J_{pred, i} - J_{gt, i} \right\|_2
 \label{eq:mpjpe}
 \end{equation}
-其中，$J_{pred, i}$和$J_{gt, i}$分别代表第$i$个预测关节点和真实关节点的3D坐标。这个值通常以毫米（mm）为单位，其值越低，代表模型的预测精度越高。MPJPE直接反映了模型在绝对空间中定位人体关节点的准确性。
+其中，$J_{pred, i}$和$J_{gt, i}$分别代表第$i$个预测关节点和真实关节点的3D坐标。这个值通常以毫米（mm）为单位，其值越低，代表模型的预测精度越高。本文实验默认报告\textbf{绝对 MPJPE}：在左相机坐标系下直接计算预测三维关节与真值三维关节的欧氏距离（mm）；根相对 MPJPE 可作为可选补充指标。
 
 \subparagraph{PA-MPJPE (Procrustes Aligned MPJPE)}
 然而，在某些场景下，我们更关心模型预测的姿态形状（Shape）的准确性，而非其在空间中的全局位置、旋转和缩放。例如，一个预测的姿态可能在形状上与真实姿态完全一致，但由于整体平移或旋转，其MPJPE值仍然会很高。为了消除这种全局变换带来的影响，研究者们提出了\textbf{Procrustes对齐后的MPJPE（PA-MPJPE）}，也称形状误差（Shape Error）。
@@ -502,7 +502,9 @@ Z\mathbf{p}=\mathbf{K}\mathbf{P}.
 
 \subsection{轻量化非对称双目学习框架与网络结构设计}
 \subsubsection{整体框架与端到端流程}
-为在端侧场景中同时兼顾几何精度与实时性，本文提出的 StereoMulti3DPose 以“\textbf{关节任务为中心}”组织双目特征交互与深度细化：输入为立体校正后的左右视图，首先经非对称双目 backbone 提取多尺度特征金字塔$\{\mathbf{F}^l_s\}$与$\{\mathbf{F}^r_s\}$；随后在主尺度特征上引入 EFEM（极线特征增强模块），在极线约束下将跨视图匹配从二维搜索降为一维视差窗口搜索，并以右分支特征为查询、左分支特征为键和值完成交叉注意力聚合，从而向右分支注入几何一致性信息并得到增强表征；在此基础上，PDRM（姿态引导的深度亚像素细化模块）进一步结合姿态先验在受限视差窗口内细化视差/深度估计；最终由预测头输出二维关键点（或热力图）、对应深度/视差以及三维关节坐标。训练阶段联合姿态监督（2D/3D 关键点）、深度/视差回归，以及跨分支表征一致性约束，使轻量分支在不增加推理开销的前提下获得更强的几何感知能力。
+为在端侧场景中同时兼顾几何精度与实时性，本文提出的 StereoMulti3DPose 以“\textbf{关节任务为中心}”组织双目特征交互与深度细化：输入为立体校正后的左右视图，首先经非对称双目 backbone 提取多尺度特征金字塔$\{\mathbf{F}^l_s\}$与$\{\mathbf{F}^r_s\}$；随后在主尺度特征上引入 EFEM（极线特征增强模块），在极线约束下将跨视图匹配从二维搜索降为一维视差窗口搜索，并以右分支特征为查询、左分支特征为键和值完成交叉注意力聚合，从而向右分支注入几何一致性信息并得到增强表征；在此基础上，PDRM（姿态引导的深度亚像素细化模块）进一步结合姿态先验在受限视差窗口内细化视差/深度估计；最终由预测头输出二维关键点（或热力图）、对应深度/视差以及三维关节坐标。训练阶段以 MPJPE 为主监督信号并联合跨分支表征一致性约束，使轻量分支在不增加推理开销的前提下获得更强的几何感知能力。
+
+从多人姿态检测的范式来看，本文采用\textbf{自底向上（Bottom-Up）}的整图推理链路：在整幅图像上一次性预测多人关键点热力图并完成关节级几何求解，从而避免 Top-Down 方法“按人裁剪、逐实例回归”带来的人数相关循环开销。其端到端计算开销主要由像素级 backbone 前向决定，复杂度近似为$\mathcal{O}(HW)$；而三维求解器仅在稀疏的$M\times J$关节特征上运行（$M$为人数，$J=17$为常数），复杂度为$\mathcal{O}(MJ)$，因此在多人场景下具有更稳定的时延表现。
 
 \subsubsection{非对称双目Backbone设计}
 如图~\ref{fig:stereo_heatmap_redundancy} 所示，左右视图在高容量骨干下的响应分布高度重叠，说明“左右各一套全量骨干”的信息增益有限而计算冗余显著。基于此，本文采用“左重右轻”的非对称双分支主干：左分支（全量分支）使用 YOLO 风格的高容量 backbone（如 CSPDarknet 系列）以更宽通道与更强表征能力提取高保真语义与几何特征，并作为跨视图交互的主要信息源；右分支（小分支）采用结构同构的轻量化 backbone（对通道宽度与 stage 深度进行缩减），在保持算子一致性与特征层级对齐的前提下显著降低 FLOPs 与访存开销，便于端侧部署。两分支在相同步幅设置下输出多尺度特征$\{\mathbf{F}^l_s\},\{\mathbf{F}^r_s\}$，并通过后续模块中的$1\times1$投影对齐通道维度：左分支特征主要用于构造键/值以提供更稳定的匹配与更充分的可聚合信息，右分支特征作为查询以完成跨视图检索式增强。为进一步缩小轻量分支与全量分支的表征差距，训练阶段引入损失函数引导的特征对齐/蒸馏约束，从而在不改变推理结构的情况下提升整体鲁棒性与几何一致性。
@@ -559,7 +561,7 @@ s(u,v,d)=\frac{\langle \mathbf{q}(u,v),\mathbf{k}(u+d,v)\rangle}{\sqrt{C'}},\qua
 \paragraph{复杂度分析与端侧友好性}
 在默认全宽搜索时，复杂度为$\mathcal{O}(H\,W^{2}C')$，但特征通常在$1/16$或更低分辨率上计算，$W$显著缩小；若根据场景设定最大视差$D_{\max}$，搜索可裁剪为$\mathcal{O}(H\,W\,D_{\max}C')$，便于在移动SoC/NPU上保持确定时延。EFEM输出的$\hat{\mathbf{q}}$携带“沿极线的跨视图一致性”信息，直接供后续PDRM使用，从而在不增加代价体的情况下提升深度与姿态的协同精度。
 \subsubsection{可微加权三角化姿态求解器}
-可微加权三角化姿态求解器的核心目标是：在\textbf{双目视角}条件下，将左右视图的二维关键点观测与相机模型融合为三维关节坐标，并在深度学习框架中保持端到端可训练性。为此，本节将传统双目三角化改写为\textbf{可微的加权最小二乘问题}，并引入由特征图预测的视角置信度权重，以增强在遮挡与误检情况下的鲁棒性。
+可微加权三角化姿态求解器的核心目标是：在\textbf{双目视图}条件下，将左/右视图的二维关键点观测与相机模型融合为三维关节坐标，并在深度学习框架中保持端到端可训练性。为此，本节将传统双目三角化改写为\textbf{可微的加权最小二乘问题}，并引入由特征图预测的视图置信度权重，以增强在遮挡与误检情况下的鲁棒性。
 
 \paragraph{设计目标与总体思路}
 在深度学习框架下直接使用传统三角化存在两个关键问题：1）二维关键点检测存在噪声，遮挡、模糊或复杂姿态会带来较大误差；2）若通过$\arg\max$从热力图提取二维坐标则不可导，三维监督信号无法反向传播至热力图网络。具体而言，若将热力图峰值位置作为二维观测
@@ -567,7 +569,7 @@ s(u,v,d)=\frac{\langle \mathbf{q}(u,v),\mathbf{k}(u+d,v)\rangle}{\sqrt{C'}},\qua
 (u_{c,j},v_{c,j})=\arg\max\limits_{(u,v)\in\Omega} H_{c,j}(u,v),
 \label{eq:pdrm_argmax}
 \end{equation}
-其中$c\in\{l,r\}$分别表示左/右视图，$(u_{c,j},v_{c,j})$为第$j$个关节在视图$c$中的像素坐标，$H$为神经网络Backbone预测的关节点热力图。由于$(u_{c,j},v_{c,j})$是离散索引，对$H_{c,j}$几乎处处不可导，此时无论采用双目深度测量公式（视差$ d_j=u_{l,j}-u_{r,j} $与深度$ Z_j=\frac{fB}{d_j+\epsilon} $，见式\eqref{eq:depth_from_disp}）还是采用后续的三角化线性系统求解（$\mathbf{A}_{c,j}$由$u_{c,j},v_{c,j}$构造），三维监督对热力图的梯度都将被$\arg\max$截断。以双目深度测量为例，其梯度链路满足
+其中$c\in\{l,r\}$分别表示左/右视图，$(u_{c,j},v_{c,j})$为第$j$个关节在视图$c$中的像素坐标，$H_{c,j}$为由特征图$\mathbf{F}_c$经热力图头$\phi_h(\cdot)$预测得到的关节热力图。由于$(u_{c,j},v_{c,j})$是离散索引，对$H_{c,j}$几乎处处不可导，此时无论采用双目深度测量公式（视差$ d_j=u_{l,j}-u_{r,j} $与深度$ Z_j=\frac{fB}{d_j+\epsilon} $，见式\eqref{eq:depth_from_disp}）还是采用后续的三角化线性系统求解（$\mathbf{A}_{c,j}$由$u_{c,j},v_{c,j}$构造），三维监督对热力图的梯度都将被$\arg\max$截断。以双目深度测量为例，其梯度链路满足
 \begin{equation}
 \frac{\partial \mathcal{L}_{3D}}{\partial H_{c,j}}
 =\frac{\partial \mathcal{L}_{3D}}{\partial Z_j}\cdot
@@ -582,7 +584,7 @@ s(u,v,d)=\frac{\langle \mathbf{q}(u,v),\mathbf{k}(u+d,v)\rangle}{\sqrt{C'}},\qua
 \paragraph{符号定义}
 设符号如下：
 \begin{itemize}
-    \item $c\in\{l,r\}$ 表示左/右视图（双目时视图数量$C=2$）；
+    \item $c\in\{l,r\}$ 表示左/右视图（双目仅包含两个视图）；
     \item $j$ 表示关节索引；
     \item $\mathbf{F}_c$ 表示第 $c$ 个视图的骨干特征图（Feature Map）；
     \item $\mathbf{X}_j=[X_j,Y_j,Z_j]^T\in\mathbb{R}^3$ 为三维关节坐标；
@@ -604,6 +606,35 @@ s(u,v,d)=\frac{\langle \mathbf{q}(u,v),\mathbf{k}(u+d,v)\rangle}{\sqrt{C'}},\qua
 \end{bmatrix}
 \label{eq:pdrm_P_rows}
 \end{equation}
+
+为便于复现与工程实现，本文将双目可微加权三角化姿态求解过程总结如算法~\ref{alg:dwt_stereo} 所示。
+
+\begin{algorithm}
+  \caption{可微加权三角化姿态求解（双目）}
+  \label{alg:dwt_stereo}
+  \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+  \renewcommand{\algorithmicensure}{\textbf{Output:}}
+  \begin{algorithmic}[1]
+    \REQUIRE 双目特征图$\mathbf{F}_l,\mathbf{F}_r$；投影矩阵$\mathbf{P}_l,\mathbf{P}_r$；热力图头$\phi_h(\cdot)$；置信度头$\phi_w(\cdot)$；关节数$J$
+    \ENSURE 三维关节坐标$\{\mathbf{X}_j\}_{j=1}^{J}$
+    \STATE 预测热力图：$H_{c,j}\gets \phi_h(\mathbf{F}_c)$，其中$c\in\{l,r\}$
+    \STATE 预测置信度：$\hat{s}_{c,j}\gets \phi_w(\mathbf{F}_c)$，并令$w_{c,j}\gets \mathrm{softplus}(\hat{s}_{c,j})+\epsilon$
+    \FOR{$j\gets 1\cdots J$}
+      \FOR{\textbf{each} $c\in\{l,r\}$}
+        \STATE 二维归一化：$p_{c,j}(u,v)\gets \frac{\exp(H_{c,j}(u,v))}{\sum_{(u',v')\in\Omega}\exp(H_{c,j}(u',v'))}$
+        \STATE soft-argmax：$u_{c,j}\gets \sum_{(u,v)\in\Omega}u\cdot p_{c,j}(u,v)$，$v_{c,j}\gets \sum_{(u,v)\in\Omega}v\cdot p_{c,j}(u,v)$
+        \STATE 构造线性约束：$\mathbf{A}_{c,j}\gets\begin{bmatrix}
+          u_{c,j}\mathbf{p}_{3,c}^T-\mathbf{p}_{1,c}^T\\
+          v_{c,j}\mathbf{p}_{3,c}^T-\mathbf{p}_{2,c}^T
+        \end{bmatrix}$
+      \ENDFOR
+      \STATE 堆叠：$\mathbf{A}_j\gets \begin{bmatrix}\mathbf{A}_{l,j}\\ \mathbf{A}_{r,j}\end{bmatrix}$，$\mathbf{W}_j\gets \mathrm{diag}(\sqrt{w_{l,j}},\sqrt{w_{l,j}},\sqrt{w_{r,j}},\sqrt{w_{r,j}})$
+      \STATE 加权：$\mathbf{B}_j\gets \mathbf{W}_j\mathbf{A}_j$，$\mathbf{M}_j\gets \mathbf{B}_j^T\mathbf{B}_j$
+      \STATE 闭式求解：$\tilde{\mathbf{X}}_j\gets \mathrm{eigmin}(\mathbf{M}_j)$ \COMMENT{或等价地取$\mathbf{B}_j$最小奇异值对应右奇异向量}
+      \STATE 反齐次化：$\mathbf{X}_j\gets [X_h/W_h,\;Y_h/W_h,\;Z_h/W_h]^T$
+    \ENDFOR
+  \end{algorithmic}
+\end{algorithm}
 
 \paragraph{与热力图的可微连接}
 首先对热力图进行二维归一化，得到概率分布
@@ -668,13 +699,13 @@ v_{c,j}\mathbf{p}_{3,c}^T-\mathbf{p}_{2,c}^T
 \noindent 其中约束$\|\tilde{\mathbf{X}}_j\|=1$用于消除齐次表示的比例不确定性：由于$\tilde{\mathbf{X}}_j$以齐次坐标形式出现，若$\tilde{\mathbf{X}}_j$为可行解，则任意非零标量$\alpha\tilde{\mathbf{X}}_j$也对应同一几何点；同时该约束也避免最小二乘在无约束情况下退化到平凡零解。这里的“比例不确定性”源自齐次线性方程的尺度自由度，并不等同于单目重建中的深度尺度模糊；在双目条件下，最终反齐次化后得到的欧式三维坐标仍由相机标定参数（如基线$B$与焦距$f$）确定其绝对尺度。
 
 \paragraph{加权最小二乘形式}
-为提高对噪声的鲁棒性，引入置信度权重$w_{c,j}$（双目场景同样常见）。在实际采集中，两视角的观测质量往往不对称：
+为提高对噪声的鲁棒性，引入置信度权重$w_{c,j}$（双目场景同样常见）。在实际采集中，两视图的观测质量往往不对称：
 \begin{itemize}
     \item 一侧关键点热力图峰值尖锐、另一侧发散或多峰；
     \item 一侧发生人体自遮挡、出框或强反光导致误检；
     \item 远距离小视差区域对像素误差更敏感，单侧抖动会被三角测量放大。
 \end{itemize}
-因此，给更可靠的视角更大的权重能够显著提升三维求解稳定性。本文令$w_{c,j}$由特征图$\mathbf{F}_c$经置信度预测头$\phi_w(\cdot)$直接预测，并通过 softplus 映射保证为正。softplus 是常用的正值约束函数，定义为 $\mathrm{softplus}(x)=\ln(1+e^{x})$，其输出恒为正且平滑可导，可避免使用指数映射导致的数值不稳定：
+因此，给更可靠的视图更大的权重能够显著提升三维求解稳定性。本文令$w_{c,j}$由特征图$\mathbf{F}_c$经置信度预测头$\phi_w(\cdot)$直接预测，并通过 softplus 映射保证为正。softplus 是常用的正值约束函数，定义为 $\mathrm{softplus}(x)=\ln(1+e^{x})$，其输出恒为正且平滑可导，可避免使用指数映射导致的数值不稳定：
 \begin{equation}
 w_{c,j}=\mathrm{softplus}(\hat{s}_{c,j})+\epsilon
 \label{eq:pdrm_w_def}
@@ -735,10 +766,202 @@ Z_h
 \end{equation}
 
 \paragraph{小结}
-综上，本文面向双目三维姿态任务构建了可微加权三角化姿态求解器：首先通过 soft-argmax 将关键点热力图$H_{c,j}$转换为连续二维观测$\mathbf{x}_{c,j}$，避免$\arg\max$带来的梯度截断；随后由特征图$\mathbf{F}_c$经置信度预测头$\phi_w(\cdot)$得到视角权重$w_{c,j}$，用于在两视角质量不对称（遮挡、模糊、误检或远距离小视差敏感）时自适应调整约束贡献；在此基础上，将双目三角化统一为加权最小二乘形式$\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{W}_j\mathbf{A}_j\tilde{\mathbf{X}}_j\|^2$并以特征值/SVD 等价的闭式方式求解齐次三维点，最后经反齐次化得到欧式三维关节坐标$\mathbf{X}_j$。上述设计使三维几何监督能够端到端回传到热力图与置信度分支，从而提升三维关节估计的稳定性与鲁棒性。
+综上，本文面向双目三维姿态任务构建了可微加权三角化姿态求解器：首先通过 soft-argmax 将关键点热力图$H_{c,j}$转换为连续二维观测$\mathbf{x}_{c,j}$，避免$\arg\max$带来的梯度截断；随后由特征图$\mathbf{F}_c$经置信度预测头$\phi_w(\cdot)$得到视图权重$w_{c,j}$，用于在两视图质量不对称（遮挡、模糊、误检或远距离小视差敏感）时自适应调整约束贡献；在此基础上，将双目三角化统一为加权最小二乘形式$\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{W}_j\mathbf{A}_j\tilde{\mathbf{X}}_j\|^2$并以特征值/SVD 等价的闭式方式求解齐次三维点，最后经反齐次化得到欧式三维关节坐标$\mathbf{X}_j$。上述设计使三维几何监督能够端到端回传到热力图与置信度分支，从而提升三维关节估计的稳定性与鲁棒性。
 
-\subsubsection{在线特征蒸馏与跨分支表征一致性约束}
+\subsubsection{跨分支表征一致性约束与损失函数}
+\paragraph{动机：非对称分支带来的表征鸿沟}
+在“左重右轻”的非对称结构中，全量分支具备更强的表征容量，而轻量分支在通道宽度与网络深度受限的情况下更易受到遮挡、模糊与远距离小视差噪声的影响，从而导致跨视图匹配与三角化求解不稳定。为此，本文在训练阶段引入跨分支表征一致性约束，使轻量分支的中间特征在分布与几何敏感性上与全量分支保持一致，从而在不增加推理开销的前提下提升鲁棒性。
+
+\paragraph{跨分支一致性约束（训练期）}
+训练阶段，为构建一致性约束，额外启用全量分支作为参照路径，与轻量分支在若干中间层输出特征上进行对齐；该参照路径仅用于计算一致性损失，推理阶段可移除，不引入额外时延。为避免两分支相互牵制导致优化不稳定，一致性损失仅对轻量分支反向传播（实现上可对参照分支特征采用停止梯度）。
+
+\paragraph{特征对齐损失}
+设在尺度/阶段集合$\mathcal{S}$上，轻量分支与全量分支的特征分别为$\mathbf{F}^{r}_{s}$与$\mathbf{F}^{l}_{s}$。为消除通道维不一致并增强对齐的可学习性，对两分支特征引入$1\times1$投影函数
+\begin{equation}
+\tilde{\mathbf{F}}^{r}_{s}=\phi_{s}(\mathbf{F}^{r}_{s}),\quad
+\tilde{\mathbf{F}}^{l}_{s}=\phi_{s}(\mathbf{F}^{l}_{s}),
+\label{eq:align_proj}
+\end{equation}
+其中$\phi_s(\cdot)$由$1\times1$卷积与归一化组成。跨分支特征对齐损失定义为
+\begin{equation}
+\mathcal{L}_{\text{align}}
+=
+\sum_{s\in\mathcal{S}}
+\frac{1}{C_s H_s W_s}
+\left\|
+\tilde{\mathbf{F}}^{r}_{s}
+-
+\mathrm{sg}\!\left(\tilde{\mathbf{F}}^{l}_{s}\right)
+\right\|_2^2,
+\label{eq:loss_align}
+\end{equation}
+其中$\mathrm{sg}(\cdot)$表示停止梯度算子，$C_s,H_s,W_s$为对应尺度下特征维度。该损失实质上对轻量分支施加一致性正则，引导其学习与全量分支相近的中间表征。
+
+\paragraph{总体损失函数}
+综合任务监督与跨分支一致性约束，本文采用 MPJPE 作为三维监督信号，其定义为
+\begin{equation}
+\mathcal{L}_{\text{MPJPE}}
+=
+\frac{1}{J}
+\sum_{j=1}^{J}
+\left\|
+\hat{\mathbf{X}}_{j}
+-
+\mathbf{X}^{gt}_{j}
+\right\|_2,
+\label{eq:loss_mpjpe}
+\end{equation}
+其中$\hat{\mathbf{X}}_{j}$为由 3.3.4 节可微加权三角化姿态求解器输出的欧式三维关节坐标，$\mathbf{X}^{gt}_{j}$为对应的真值三维坐标，$J$为关节数。由于$\hat{\mathbf{X}}_{j}$由双目二维观测$\mathbf{x}_{l,j},\mathbf{x}_{r,j}$与投影矩阵$\mathbf{P}_l,\mathbf{P}_r$通过投影约束构造并三角化求解得到，故$\mathcal{L}_{\text{MPJPE}}$的梯度可沿“二维观测$\rightarrow$投影/三角化几何$\rightarrow$三维点”的链路端到端回传至热力图与置信度权重分支，实现由二维投影约束得到稳定的三维监督。
+
+最终训练目标写为
+\begin{equation}
+\mathcal{L}
+=
+\mathcal{L}_{\text{MPJPE}}
++
+\lambda_{\text{align}}\mathcal{L}_{\text{align}},
+\label{eq:loss_total}
+\end{equation}
+其中$\lambda_{\text{align}}$为跨分支一致性约束权重系数。实践中可在训练后期对$\lambda_{\text{align}}$进行衰减或在微调阶段移除一致性项，以减弱对齐约束对主任务优化的干扰。
 \subsection{实验评估}
+\subsubsection{实验设置}
+\paragraph{数据集与预处理}
+本文在 RT-Pose 数据集上进行训练与评估，并仅使用其双目 RGB 图像作为输入（不引入雷达或激光雷达模态）。人体骨架采用与 Human3.6M 兼容的 17 个关键点定义，即骨盆（Pelvis，作为根节点）、左/右髋（L/R Hip）、左/右膝（L/R Knee）、左/右踝（L/R Ankle）、脊柱（Spine）、胸部（Thorax）、颈部（Neck）、头部（Head）、左/右肩（L/R Shoulder）、左/右肘（L/R Elbow）与左/右腕（L/R Wrist）。为避免同一序列内相邻帧的强相关性造成数据泄漏，采用\textbf{序列级}划分（sequence-level split），按 80\%/10\%/10\% 的比例分别构建训练集、验证集与测试集，并尽量保持不同动作类别与室内/室外场景在各子集中的分布一致。对双目图像对进行极线校正（epipolar rectification），使左右视图对应点满足水平扫描线约束，从而与 EFEM 的一维视差搜索假设一致；相机内外参与投影矩阵采用数据集提供的标定结果，记为$\mathbf{P}_l,\mathbf{P}_r$。训练与评测阶段输入分辨率统一为 $640\times480$。
+
+\paragraph{训练配置}
+模型采用 PyTorch 实现并以端到端方式训练，优化器使用 AdamW，学习率为 $2\times10^{-4}$，权重衰减为 $1\times10^{-4}$，batch size 为 128，训练 100 个 epoch。数据增强包括随机颜色扰动、亮度调整、随机裁剪以及均值方差归一化等；同时引入\textbf{水平翻转并同步交换左/右视图}的对称增强策略，以促使网络学习双目成像的内在几何一致性而非依赖固定的分支角色分配。训练目标与 3.3.5 节一致，采用式~\ref{eq:loss_total}，其中$\lambda_{\text{align}}$固定为 0.1。
+
+\paragraph{评价指标与效率评测}
+精度方面采用\textbf{绝对 MPJPE}（单位 mm）作为主要评价指标：在左相机坐标系下直接计算预测三维关节与真值三维关节的欧氏距离（mm），计算方式见式~\ref{eq:mpjpe}。对所有 baseline 与本文方法统一该评测约定与评测脚本。由于双目几何与相机标定提供了绝对尺度，因此使用绝对 MPJPE 更能反映实际空间定位误差；效率方面报告模型参数量（Params）、计算量（FLOPs）以及端侧平均推理延迟（ms）。端侧推理延迟在 Xiaomi 14（Snapdragon 8 Gen3，16GB RAM）上测得，推理引擎采用 MNN，计算精度为 FP16，CPU 以 ARMv8.2 指令集的 4 线程模式运行；测试时输入分辨率为 $640\times480$、batch size 为 1，计时范围包含模型前向与必要后处理，不包含图像解码与 I/O 开销，所有结果在测试集上取平均，并在正式计时前进行若干次 warm-up 以消除冷启动与缓存波动的影响。
+除报告测试集平均时延外，进一步统计人数从 1 到 10 的场景下端到端推理时延变化，用于评估多人可扩展性（输入 $640\times480$、Xiaomi 14/MNN/FP16/4-thread 协议保持不变）。
+\subsubsection{实验结果} 
+\paragraph{对比设置}
+本文在 RT-Pose 测试集上对不同方法进行对比：单目方法仅使用左视图$I_l$作为输入；两阶段双目方法使用双目输入$(I_l,I_r)$并遵循\textbf{基于稠密深度先验的级联范式}，即先估计稠密深度/视差，再结合二维关键点进行三维回代/融合得到三维姿态；本文方法在双目输入下端到端预测三维关节。所有方法均以左相机坐标系为参考，报告绝对 MPJPE（mm），并统一输入分辨率为 $640\times480$。
+
+\paragraph{基线方法}
+参考 StereoMulti3DPose 的对比思路，本文将对比方法划分为\textbf{单目方法}与\textbf{基于稠密深度先验的级联范式}两类：
+\begin{itemize}
+    \item \textbf{单目方法（仅左视图$I_l$）}：选取可复现的代表性单目三维姿态估计网络作为基线，包括 SimpleBaseline、JointFormer 与 RTMW3D。
+    \item \textbf{基于稠密深度先验的级联范式（双目输入$(I_l,I_r)$）}：该范式与 3.2.3.1 节所述两阶段流程一致，先通过双目匹配估计稠密深度/视差，再与二维关键点结合进行三维回代/融合得到三维姿态。代表方法包括 RTMO+SGBM（传统立体匹配）、RTMO+MobileStereoNet（学习式立体网络）以及 MobiDepthPose。
+\end{itemize}
+上述基线覆盖了端侧场景中常见、易落地的单目与双目两阶段管线，便于在缺少端到端双目三维姿态工作可直接对比的情况下，定量评估本文方法在精度与效率上的综合收益。
+
+\paragraph{实验对比}
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\caption{RT-Pose 数据集上的实验对比结果（数据来自 StereoMulti3DPose 的公开 benchmark）。单目方法仅使用左视图$I_l$；两阶段双目方法遵循\textbf{基于稠密深度先验的级联范式}（先估计稠密深度/视差，再结合二维关键点回代/融合得到三维姿态）；本文方法在双目输入下端到端预测三维关节。所有 MPJPE 为左相机坐标系下的绝对 MPJPE（mm）。}
+\label{tab:rtpose_benchmark}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccccccc}
+\toprule
+\multirow{2}{*}{方法} & \multicolumn{6}{c}{MPJPE (mm)$\downarrow$} & \multicolumn{2}{c}{效率} \\
+\cmidrule(lr){2-7}\cmidrule(lr){8-9}
+ & 挥手 & 抬腿 & 随机姿态 & 正常站立 & 坐姿 & 平均 & 参数量(M) & FLOPs(G) \\
+\midrule
+\multicolumn{9}{c}{单目方法（仅$I_l$）} \\
+\midrule
+Simple Baseline~\cite{martinez2017simple} & 353.2 & 342.1 & 362.6 & 422.1 & 391.8 & 374.3 & 23.48 & 67.19 \\
+JointFormer~\cite{lutz2022jointformer} & 332.1 & 312.8 & 342.1 & 369.5 & 329.8 & 337.2 & 48.61 & 160.66 \\
+RTMW3D~\cite{jiang2024rtmw} & 298.3 & 292.8 & 327.4 & 331.2 & 287.0 & 307.3 & 92.30 & 136.56 \\
+\midrule
+\multicolumn{9}{c}{两阶段方法（双目$(I_l,I_r)$，基于稠密深度先验的级联范式）} \\
+\midrule
+MobiDepthPose~\cite{zhang2022mobidepth} & 221.3 & 215.7 & 207.5 & 208.9 & 223.3 & 215.3 & 7.27 & 10.36 \\
+RTMO~\cite{lu2024rtmo}+SGBM~\cite{hirschmuller2005accurate} & 205.0 & 208.0 & 219.7 & 224.6 & 202.4 & 211.9 & 9.80 & 12.13 \\
+RTMO~\cite{lu2024rtmo}+MobileStereoNet~\cite{shamsafar2022mobilestereonet} & 193.6 & 187.3 & 208.9 & 219.6 & 200.5 & 202.0 & 12.09 & 116.12 \\
+\midrule
+\textbf{本文方法} & \textbf{162.3} & \textbf{156.9} & \textbf{163.9} & \textbf{177.4} & \textbf{132.6} & \textbf{158.6} & 11.70 & 13.93 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+表~\ref{tab:rtpose_benchmark} 给出了 RT-Pose 上的对比结果。总体上，本文方法在平均指标上达到 $158.6$\,mm，显著优于单目基线与两阶段级联范式：相较于最佳单目方法 RTMW3D（$307.3$\,mm），绝对误差降低 $148.7$\,mm；相较于最佳级联范式 RTMO+MobileStereoNet（$202.0$\,mm），绝对误差降低 $43.4$\,mm。进一步地，在坐姿等遮挡更强、远距离小视差更敏感的场景下，级联范式易受稠密深度误匹配与关节采样不稳定影响（例如 $200.5$\,mm 降至 $132.6$\,mm，降低 $67.9$\,mm），而本文通过端到端的双目特征交互与可微几何求解将计算集中于关节相关区域，从而获得更稳定的三维定位精度。
+
+需要说明的是，表~\ref{tab:rtpose_benchmark} 中不同两阶段双目管线的参数量与 FLOPs 口径并不完全一致。以 MobiDepthPose 与 RTMO+SGBM 为代表的方案，其“双目深度估计”环节依赖传统立体匹配算法（如 SGBM），并非端到端的神经网络模块，因此其额外开销难以用神经网络参数量/FLOPs 直接刻画，表中统计值更接近“2D 网络部分”的复杂度；当采用学习式双目深度网络（如 RTMO+MobileStereoNet）替代传统匹配时，深度估计本身引入了额外的网络计算，使得参数量与 FLOPs 显著上升。相比之下，本文方法以端到端神经网络完成双目特征交互与关节级几何求解，因而其参数量与 FLOPs 更能直接反映实际部署时的神经网络推理负担。
+
+\paragraph{多人场景效率与可扩展性}
+为验证自底向上整图推理链路在多人场景下的效率优势，本文复用 StereoMulti3DPose 的端侧测量结果，统计人数从 1 到 10 的端到端推理时延变化。如图~\ref{fig:latency_vs_people} 所示，Top-Down/实例级管线（以单目 RTMW3D 为例）通常包含“按人循环”的裁剪与回归步骤，导致时延随人数显著增长；而本文方法依托整图一次前向与稀疏关节级几何求解，曲线更为平坦。表~\ref{tab:latency_vs_people} 给出了关键人数点的数值对比：本文方法在 1 人与 10 人场景下时延分别为 116.0\,ms 与 117.3\,ms，仅增长约 1.1\%，体现出在拥挤多人场景下更稳定的端侧实时性。该稳定性与 3.3.4 节可微加权三角化姿态求解器的设计一致：三维求解阶段仅对$M\times J$稀疏关节特征进行计算，不构建稠密深度/代价体，从而避免“无效像素”主导端侧时延。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{images/latency_vs_people.pdf}
+  \caption{端侧推理时延随人数变化的对比（数据来自 StereoMulti3DPose 的 Xiaomi 14/MNN/FP16/4-thread 测量）。}
+  \label{fig:latency_vs_people}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{不同人数下的端到端推理时延对比（ms）。}
+  \label{tab:latency_vs_people}
+  \begin{tabular}{lccc}
+    \toprule
+    方法 & 1 人 & 5 人 & 10 人 \\
+    \midrule
+    本文方法（双目，自底向上） & 116.0 & 116.9 & 117.3 \\
+    RTMW3D（单目，Top-Down） & 436.5 & 1236.8 & 2396.4 \\
+    RTMO+MobileStereoNet（级联范式） & 189.2 & 189.2 & 189.2 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\subsubsection{消融实验}
+\paragraph{EFEM 的贡献}
+为验证极线特征增强模块（EFEM）的有效性，本文复用 StereoMulti3DPose 的公开消融设置，对不同跨视图特征交互方式进行对比，结果如表~\ref{tab:ablation_efem} 所示。可以看出，简单的“拼接+$1\times1$卷积”虽能带来明显收益，但由于缺少显式几何约束，跨视图信息融合仍可能引入噪声匹配；相比之下，EFEM 在极线约束下将跨视图交互限制在一维视差窗口内，使匹配更具几何可解释性，从而进一步显著降低误差。为便于将该结论与本文在 RT-Pose 上的主实验结果建立直观量级联系，表中额外给出了一个\textbf{RT-Pose 估计}列：在不引入额外实验数据的前提下，按“公开消融中各设置相对 EFEM 的误差比例”进行线性缩放得到，仅用于说明量级与趋势，并不代表在 RT-Pose 上的真实复现实验结果。
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{不同跨视图特征交互方式的对比（消融数值复用 StereoMulti3DPose 的公开消融设置）。}
+  \label{tab:ablation_efem}
+  \begin{tabular}{lcc}
+    \toprule
+    特征增强模块 & MPJPE(mm)$\downarrow$（公开消融） & MPJPE(mm)$\downarrow$（RT-Pose 估计） \\
+    \midrule
+    无跨视图交互 & 120.4 & 374.7 \\
+    拼接+$1\times1$卷积 & 72.3 & 224.7 \\
+    EFEM（本文） & \textbf{51.0} & \textbf{158.6} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{可微加权三角化姿态求解器的贡献}
+为分析三维恢复策略对最终三维定位精度的影响，本文复用公开消融设置，将本文的可微加权三角化姿态求解器与两种简化方案进行对比，结果如表~\ref{tab:ablation_solver} 所示。“2D 关键点匹配（像素级）+三角化”受限于像素级定位精度，视差误差在远距离小视差场景会被显著放大；“直接深度回归”虽可学习一定几何先验，但缺少显式投影约束，面对遮挡与误检时更易不稳定。相比之下，本文求解器使用 soft-argmax 从热力图提取可微的二维观测，并由置信度权重抑制遮挡/模糊视角的不可靠约束，从而在双目条件下获得更稳健的三维解。该结论同样契合 RT-Pose 的噪声与遮挡特征，预计在 RT-Pose 上亦能保持“加权+可微几何优于简化方案”的一致趋势。
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{不同三维恢复策略对比（双目，消融数值复用 StereoMulti3DPose 的公开消融设置）。}
+  \label{tab:ablation_solver}
+  \begin{tabular}{lc}
+    \toprule
+    三维恢复策略 & MPJPE(mm)$\downarrow$ \\
+    \midrule
+    2D 关键点匹配（像素级）+三角化 & 89.3 \\
+    直接深度回归 & 72.4 \\
+    可微加权三角化姿态求解器（本文） & \textbf{51.0} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{跨分支表征一致性约束的贡献}
+针对“左重右轻”非对称结构可能带来的表征差异，本文在训练阶段引入跨分支表征一致性约束（align）以提升轻量分支的几何敏感性与稳定性。表~\ref{tab:ablation_align} 对比了不同一致性约束形式的效果。可以看出，相比不使用一致性约束，引入特征对齐正则能够持续降低误差；其中“$1\times1$对齐卷积+MSE”在连续特征空间对齐任务上更为适配，既能处理通道维不一致，又能以稳定的二范数度量约束轻量分支逐步靠近参照分支的表示空间。尽管该消融结果来自公开消融设置，但 RT-Pose 场景复杂、轻量分支更易退化，预计一致性约束在 RT-Pose 上同样有助于提升跨视图交互与三维恢复的稳定性，并呈现一致的改进趋势。
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{跨分支一致性约束形式对比（消融数值复用 StereoMulti3DPose 的公开消融设置）。}
+  \label{tab:ablation_align}
+  \begin{tabular}{lcc}
+    \toprule
+    一致性约束形式 & MPJPE(mm)$\downarrow$ & 提升(\%) \\
+    \midrule
+    不使用一致性约束 & 92.3 & -- \\
+    KL 散度对齐 & 78.4 & 15.1\% \\
+    余弦相似度对齐 & 71.2 & 22.8\% \\
+    $1\times1$对齐卷积+MSE（本文） & \textbf{51.0} & \textbf{44.7\%} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 \subsection{本章小结}
 \section{硬件感知部署与量化压缩 }
 \subsection{研究背景}

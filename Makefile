@@ -10,7 +10,9 @@ LATEXMK_OPT_BASE = -xelatex -gg -silent
 LATEXMK_OPT = $(LATEXMK_OPT_BASE) -f
 LATEXMK_OPT_PVC = $(LATEXMK_OPT_BASE) -pvc
 
-all: $(THESIS).pdf
+all: build/$(THESIS).pdf
+
+pdf: $(THESIS).pdf
 
 build: build/$(THESIS).pdf
 
@@ -23,9 +25,9 @@ build/$(THESIS).pdf : $(THESIS).tex $(TEX_DIR)/*.tex $(BIB_DIR)/*.bib CSUthesis.
 	-latexmk $(LATEXMK_OPT) -outdir=build $(THESIS)
 
 pvc :
-	latexmk $(LATEXMK_OPT_PVC) $(THESIS)
+	latexmk $(LATEXMK_OPT_PVC) -outdir=build $(THESIS)
 
-view : $(THESIS).pdf
+view : build/$(THESIS).pdf
 #Mac user
 	open $<
 #Linux user
