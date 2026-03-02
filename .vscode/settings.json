@@ -57,5 +57,5 @@
         }
     ],
     "latex-workshop.latex.rootFile.doNotPrompt": true,
-    "latex-workshop.latex.rootFile.indicator": "\\documentclass[]{}"
+    "latex-workshop.latex.rootFile.indicator": "\\documentclass[]{}",
 }
