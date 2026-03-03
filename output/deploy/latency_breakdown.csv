@@ -1,0 +1,7 @@
+模块,延迟(ms),占比(%),主要算子
+左分支 CSPDarknet-M,76.7,66.1,"Conv, BN, SiLU, CSP"
+右分支 CSPDarknet-N,19.4,16.7,"Conv, BN, SiLU, CSP"
+EFEM 极线注意力,10.0,8.6,"1×1 Conv, unfold, softmax"
+热力图头与置信度头,7.0,6.0,"1×1 Conv, GAP, Linear"
+DWT 三角化求解器,1.1,0.9,"softmax, matmul, eigmin"
+端到端合计,116.0,100.0,
