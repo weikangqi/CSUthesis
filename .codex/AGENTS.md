@@ -12,6 +12,7 @@ Bullet-point lists should be minimized unless required for formal definitions.
 The language must conform to formal Chinese academic writing conventions,
 with precise terminology and logically connected arguments.
 
+如非必要不要编译
 ---------------------------------------------------------------------
 
 ## Reference to Previously Published English Paper
