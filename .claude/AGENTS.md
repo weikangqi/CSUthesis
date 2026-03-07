@@ -132,5 +132,3 @@ not a conference paper draft.
 
 The compilation directory is set in the build directory
 
-## Figures and Tables
-图和表的标题要简洁，比如xxx图就好了。图的说明要放在正文中
