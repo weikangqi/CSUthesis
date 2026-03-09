@@ -127,7 +127,7 @@ RT-Pose\citess{ho2024rt}（Radar Tensor-based 3D Human Pose Estimation Benchmark
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{images/OverallStructureDiagramOfTheSystem.png}
-  \caption{系统整体结构示意图。第三章聚焦模型设计与训练，构建轻量化双目3D姿态检测网络；第四章面向端侧落地，开展硬件感知部署与量化压缩。}
+\caption{系统整体结构示意图}
   \label{fig:system_overview}
 \end{figure}
 
@@ -142,7 +142,7 @@ RT-Pose\citess{ho2024rt}（Radar Tensor-based 3D Human Pose Estimation Benchmark
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=1\textwidth]{images/CNN.pdf}
-  \caption{典型卷积神经网络架构示意图。网络由卷积层、激活函数、池化层与全连接层依次堆叠，逐层提取从低级边缘纹理到高级语义特征的层次化表征。}
+\caption{典型卷积神经网络架构示意图}
   \label{fig:cnn_architecture}
 \end{figure}
 典型的CNN架构主要由以下几种关键层堆叠而成：
@@ -156,7 +156,7 @@ RT-Pose\citess{ho2024rt}（Radar Tensor-based 3D Human Pose Estimation Benchmark
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.5\textwidth]{images/ConvolutionalLayer.png}
-  \caption{卷积层操作示意图。卷积核在输入特征图上滑动，通过局部连接与权值共享提取局部特征，生成输出特征图。}
+\caption{卷积层操作示意图}
   \label{fig:conv_layer}
 \end{figure}
 
@@ -185,7 +185,7 @@ RT-Pose\citess{ho2024rt}（Radar Tensor-based 3D Human Pose Estimation Benchmark
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.5\textwidth]{images/pooling.png}
-  \caption{池化层操作示意图。}
+\caption{池化层操作示意图}
   \label{fig:pooling_layer}
 \end{figure}
 
@@ -227,7 +227,7 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
       \caption{Transformer 结构}
     \end{minipage}
   \end{subfigure}
-  \caption{Transformer 中注意力机制与结构示意图（从左至右依次为缩放点积注意力、多头注意力与 Transformer 整体结构）。}
+\caption{Transformer 注意力机制与结构示意图}
   \label{fig:scaled_dot_product_attention}
 \end{figure}
 其中，$Q$（查询）、$K$（键）和$V$（值）是由输入序列经过线性变换得到的三个向量。注意力机制通过计算查询与所有键的相似度（点积），并对结果进行缩放与softmax归一化，得到一组权重系数。这些权重随后被用于对值向量进行加权求和，从而得到最终的输出。这个过程可以直观地理解为：根据“查询”向量$Q$，从一系列“键-值”对（$K\!-\!V$）中检索信息。一个完整的Transformer层通常由一个多头注意力模块和一个前馈神经网络（Feed-Forward Network）组成，每个模块之后都跟随着残差连接（Residual Connection）和层归一化（Layer Normalization）。通过堆叠多个这样的层，Transformer能够构建起强大的深度模型。
@@ -279,7 +279,7 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.85\textwidth]{images/HeatmapBased.png}
-  \caption{基于热图的人体姿态估计示意图。左：输入图像；中：网络输出的关节概率热图，亮色区域对应各关节点的高响应位置；右：依据热图峰值解码得到的骨架关键点检测结果。}
+\caption{基于热图的人体姿态估计示意图}
   \label{fig:heatmap_based}
 \end{figure}
 
@@ -303,17 +303,17 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
   \begin{subfigure}[b]{\textwidth}
     \centering
     \includegraphics[width=0.9\textwidth]{images/Top-down.jpg}
-    \caption{自顶向下范式：先检测人体边界框，再对每个裁剪区域独立执行单人关键点检测。}
+\caption{自顶向下姿态估计范式}
     \label{fig:topdown}
   \end{subfigure}
   \vspace{0.5em}
   \begin{subfigure}[b]{\textwidth}
     \centering
     \includegraphics[width=0.9\textwidth]{images/Bottom-up.jpg}
-    \caption{自底向上范式：先在全图检测所有关键点，再通过身体部件关联算法完成实例分组。}
+\caption{自底向上姿态估计范式}
     \label{fig:bottomup}
   \end{subfigure}
-  \caption{二维多人姿态估计的两类主流范式对比。}
+\caption{二维多人姿态估计主流范式对比}
   \label{fig:pose_paradigms}
 \end{figure}
 
@@ -332,17 +332,17 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
   \begin{subfigure}[b]{\textwidth}
     \centering
     \includegraphics[width=0.85\textwidth]{images/3Dpose_DirectEstimation.png}
-    \caption{端到端直接估计：图像直接输入3D姿态检测器，一步回归三维关节坐标。}
+\caption{端到端直接估计}
     \label{fig:3d_direct}
   \end{subfigure}
   \vspace{0.5em}
   \begin{subfigure}[b]{\textwidth}
     \centering
     \includegraphics[width=0.5\textwidth]{images/3Dpose_2Dto3D_Lifting.png}
-    \caption{两阶段2D提升法：先检测2D关键点，再通过提升网络映射至3D空间。}
+\caption{两阶段 2D 提升法}
     \label{fig:3d_lifting}
   \end{subfigure}
-  \caption{三维人体姿态估计的两类主流方法示意图。}
+\caption{三维人体姿态估计主流方法示意图}
   \label{fig:3dpose_methods}
 \end{figure}
 
@@ -439,7 +439,7 @@ s_r \mathbf{x}_r = \mathbf{K}_r \left[\mathbf{R}_r \ \mathbf{t}_r\right]\mathbf{
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\textwidth]{images/EpipolarGeometry.png}
-  \caption{双目对极几何示意图。$C_l$、$C_r$为左右相机光心，$\mathbf{X}$为空间三维点；$l_l$、$l_r$为对应极线，$e_l$、$e_r$为对极点；三点$C_l$、$C_r$、$\mathbf{X}$所确定的平面为对极平面，其与成像平面的交线即为对应极线。}
+\caption{双目对极几何示意图}
   \label{fig:epipolar_geometry}
 \end{figure}
 
@@ -676,7 +676,7 @@ Z\mathbf{p}=\mathbf{K}\mathbf{P}.
     \includegraphics[width=\textwidth]{images/Right_perspective_heatmap_visualization.png}
     \caption{右视图热力图}
   \end{subfigure}
-  \caption{左右视图热力图对比：响应分布高度重叠，提示双全量骨干的计算冗余}
+\caption{左右视图热力图对比}
   \label{fig:stereo_heatmap_redundancy}
 \end{figure}
 
@@ -728,7 +728,7 @@ Z\mathbf{p}=\mathbf{K}\mathbf{P}.
 \begin{table}[htbp]
   \centering
   \small
-  \caption{非对称双目骨干网络两分支各阶段输出通道数配置对比。步幅 $s$ 表示特征图相对于输入图像的下采样倍数。}
+\caption{非对称双目骨干网络通道配置对比}
   \label{tab:backbone_config}
   \begin{tabular}{lcccc}
     \toprule
@@ -745,9 +745,7 @@ Z\mathbf{p}=\mathbf{K}\mathbf{P}.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{images/Overall_structure_of_asymmetric_binocular_backbone_network}
-  \caption{非对称双目骨干网络结构示意图。
-           左侧展示两分支从输入到多尺度特征输出的各阶段通道配置；
-           右侧展示单个 CSP Block 中"直传路径$+$Bottleneck 堆叠$\to$Concat$\to$融合"的内部数据流。}
+  \caption{非对称双目骨干网络结构示意图}
   \label{fig:cspdarknet_arch}
 \end{figure}
 
@@ -761,7 +759,7 @@ Z\mathbf{p}=\mathbf{K}\mathbf{P}.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.88\textwidth]{images/crossattention.png}
-  \caption{极线交叉注意力计算示意图：右视图特征作为查询，左视图特征作为键和值，沿水平极线在视差窗口内计算权重并对值加权聚合。}
+\caption{极线交叉注意力计算示意图}
   \label{fig:efem_crossattention}
 \end{figure}
 
@@ -1115,7 +1113,7 @@ Z_h
 \centering
 \small
 \renewcommand{\arraystretch}{1.15}
-\caption{RT-Pose 数据集上的实验对比结果（数据来自公开 benchmark）。单目方法仅使用左视图$I_l$；两阶段双目方法遵循基于稠密深度先验的级联范式（先估计稠密深度/视差，再结合二维关键点回代/融合得到三维姿态）；本文方法在双目输入下端到端预测三维关节。所有 MPJPE 为左相机坐标系下的绝对 MPJPE（mm）。$^\dagger$标记的方法依赖传统立体匹配算法（SGBM），其参数量与 FLOPs 仅统计神经网络部分，不含 SGBM 的运行时开销。}
+\caption{RT-Pose 数据集实验对比结果}
 \label{tab:rtpose_benchmark}
 \resizebox{\textwidth}{!}{
 \begin{tabular}{lcccccccc}
@@ -1153,7 +1151,7 @@ RTMO~\cite{lu2024rtmo}+MobileStereoNet~\cite{shamsafar2022mobilestereonet} & 193
 \centering
 \small
 \renewcommand{\arraystretch}{1.15}
-\caption{跨数据集泛化结果：在 RT-Pose 上训练后直接在 MADS 上测试（零样本），仅报告整体平均 MPJPE（mm）。}
+\caption{跨数据集泛化结果}
 \label{tab:mads_generalization}
 \begin{tabular}{lc}
 \toprule
@@ -1169,7 +1167,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{images/rtpose_qualitative.png}
-  \caption{RT-Pose 数据集上的定性可视化结果示例（红色骨架为真值，其他颜色骨架为预测结果）。}
+\caption{RT-Pose 数据集定性结果示例}
   \label{fig:rtpose_qualitative}
 \end{figure}
 
@@ -1179,14 +1177,14 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.72\textwidth]{images/latency_vs_people.pdf}
-  \caption{端侧推理时延随人数变化的对比（Xiaomi 14/MNN/FP16/4线程 端侧测量）。}
+\caption{端侧推理时延随人数变化的对比}
   \label{fig:latency_vs_people}
 \end{figure}
 
 \begin{table}[htbp]
   \centering
   \small
-  \caption{不同人数下的端到端推理时延对比（ms）。}
+\caption{不同人数下的端到端推理时延对比}
   \label{tab:latency_vs_people}
   \begin{tabular}{lccc}
     \toprule
@@ -1206,7 +1204,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
   \centering
   \small
   \renewcommand{\arraystretch}{1.15}
-  \caption{核心模块贡献汇总：各模块对 Avg MPJPE 的独立贡献（RT-Pose 测试集；每行仅替换单一模块，其余保持本文默认）。}
+\caption{核心模块贡献汇总}
   \label{tab:ablation_incremental}
   \begin{tabular}{lcc}
     \toprule
@@ -1229,7 +1227,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{table}[htbp]
   \centering
   \small
-  \caption{非对称双目骨干网络（左重右轻）消融（RT-Pose 测试集）。}
+\caption{非对称双目骨干网络消融}
   \label{tab:ablation_asym_stereo}
   \begin{tabular}{lccc}
     \toprule
@@ -1249,7 +1247,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{table}[htbp]
   \centering
   \small
-  \caption{不同跨视图特征交互方式的对比（RT-Pose 测试集）。}
+\caption{跨视图特征交互方式对比}
   \label{tab:ablation_efem}
   \begin{tabular}{lc}
     \toprule
@@ -1268,7 +1266,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{table}[htbp]
   \centering
   \small
-  \caption{极线特征增强模块的视差搜索范围 $D_{\max}$ 敏感性分析（RT-Pose 测试集；$D_{\max}$ 以 EFEM 所在特征图坐标计）。}
+\caption{EFEM 视差搜索范围敏感性分析}
   \label{tab:ablation_efem_dmax}
   \begin{tabular}{ccc}
     \toprule
@@ -1287,7 +1285,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{table}[htbp]
   \centering
   \small
-  \caption{不同三维恢复策略对比（RT-Pose 测试集）。}
+\caption{三维恢复策略对比}
   \label{tab:ablation_solver}
   \begin{tabular}{lc}
     \toprule
@@ -1304,7 +1302,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{table}[htbp]
   \centering
   \small
-  \caption{可微加权三角化姿态求解器的组件级消融（RT-Pose 测试集）。}
+\caption{可微加权三角化求解器消融}
   \label{tab:ablation_solver_components}
   \begin{tabular}{llc}
     \toprule
@@ -1322,7 +1320,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{table}[htbp]
   \centering
   \small
-  \caption{跨分支一致性约束形式对比（RT-Pose 测试集）。}
+\caption{跨分支一致性约束形式对比}
   \label{tab:ablation_align}
   \begin{tabular}{lcc}
     \toprule
@@ -1340,7 +1338,7 @@ MADS~\citess{zhang2017mads} & （待补） \\
 \begin{table}[htbp]
   \centering
   \small
-  \caption{跨分支一致性约束权重系数 $\lambda_{\text{align}}$ 敏感性分析（RT-Pose 测试集）。}
+\caption{跨分支一致性约束权重敏感性分析}
   \label{tab:ablation_align_lambda}
   \begin{tabular}{ccc}
     \toprule
@@ -1381,20 +1379,24 @@ MADS~\citess{zhang2017mads} & （待补） \\
 
 然而，服务器级 GPU 上有效的网络结构并不能直接迁移到移动端 CPU。对于本文的整图双目推理模型而言，推理性能同时受卷积算力、内存带宽、缓存层次与算子实现方式影响，而跨视图匹配、softmax 归一化与几何求解又对数值误差较为敏感。因此，本章围绕 Snapdragon 8 Gen3 CPU 与 MNN 后端，先识别端侧瓶颈与高风险环节，再据此设计兼顾精度、时延与模型体积的混合精度部署方案。
 
+从端侧部署角度看，移动端 CPU 与边缘设备通常同时受到算力、内存带宽、缓存容量与功耗预算的约束，模型能否落地不仅取决于参数规模，还取决于权重访存模式、算子调度方式以及中间激活的存取开销。对于包含多尺度卷积、跨视图匹配与几何求解的三维姿态估计模型而言，这些约束往往相互耦合：即使网络结构本身已经完成轻量化，若关键模块仍存在高带宽消耗或数值敏感环节，端侧时延与精度退化问题仍难以同时得到解决。
+
+现有端侧优化研究通常沿着轻量化网络结构、算子融合、低比特量化与混合精度部署等方向展开；对于移动端姿态估计与同类视觉模型，实际可落地方案往往不是单独依赖某一种压缩手段，而是将结构裁剪、算子优化与量化部署协同设计。经典整数推理工作通常采用逐通道权重量化与离线校准来兼顾吞吐与精度\cite{jacob2018quantization}；面向快速部署的 PTQ 方法则强调通过权重均衡、偏置修正与截断阈值搜索减小量化误差\cite{banner2019post,nagel2019data}; 而近年来的激活平滑方法进一步表明，长尾激活分布的处理方式会显著影响低比特部署效果\cite{xiao2023smoothquant}。这也说明，端侧量化并非“全模型一刀切”即可达到最优效果，精度风险往往集中在激活分布不稳定层、归一化与匹配相关环节，以及直接参与几何恢复的求解环节。对于本文模型而言，卷积主干、跨视图匹配、softmax 与几何求解并存，更适合采用“瓶颈分析 + 敏感性筛查 + 分层混合精度”的部署思路；在具体校准实现上，本文仅借鉴 NCNN 的直方图校准思路作为一种稳健 PTQ 方法。因此，第四章需要先识别端侧瓶颈，再确定哪些层适合量化、哪些层必须保护。
+
 \subsection{问题分析}
 
-在正式介绍量化方案之前，本节从三个递进层次分析端侧推理的性能瓶颈：首先通过实测延迟拆解定位计算热点，随后借助 Roofline 模型判断各模块的访存与计算约束类型，最后通过量化敏感性分析识别精度高风险层，为后续的分层混合精度设计提供数据支持。
+在正式介绍量化方案之前，本节围绕“哪些模块最值得量化、哪些模块不能轻易量化”这一核心问题，按三个层次递进展开分析。首先，通过实测延迟拆解识别端侧推理的主要耗时来源，回答“优化重点在哪里”；其次，借助 Roofline 模型进一步区分主要模块受算力还是受带宽约束，回答“这些热点为何成为瓶颈”；最后，通过量化敏感性分析识别几何推理链路中的高风险层，回答“哪些层可以量化、哪些层必须保护”。这样，4.2 节将从性能热点、硬件约束与误差风险三个维度，为后续 4.3 节的分层混合精度设计建立完整证据链。
 
 \subsubsection{端侧推理瓶颈的实测分析}
 
-为定位第三章所提框架在端侧的计算热点，本节以 Xiaomi 14（Snapdragon 8 Gen3，16\,GB RAM）为目标平台，采用 MNN 推理引擎在 FP16 精度、ARMv8.2 指令集、4 线程 CPU 模式下对各模块逐一计时。计时方法与第三章实验协议保持一致：输入分辨率为 $640\times480$，批大小为 1，测试前进行若干次预热以消除冷启动影响，正式计时取 100 次前向的均值，计时范围包含各模块的前向计算，不含图像解码与 I/O 开销，并以单人场景（$M=1$）为基准。
+4.2.1 首先回答“端侧推理时间主要耗在哪些模块上”。为定位第三章所提框架在端侧的计算热点，本节以 Xiaomi 14（Snapdragon 8 Gen3，16\,GB RAM）为目标平台，采用 MNN 推理引擎在 FP16 精度、ARMv8.2 指令集、4 线程 CPU 模式下对各模块逐一计时。计时方法与第三章实验协议保持一致：输入分辨率为 $640\times480$，批大小为 1，测试前进行若干次预热以消除冷启动影响，正式计时取 100 次前向的均值，计时范围包含各模块的前向计算，不含图像解码与 I/O 开销，并以单人场景（$M=1$）为基准。
 
 各模块实测延迟如表~\ref{tab:module_latency} 所示。
 
 \begin{table}[htbp]
   \centering
   \small
-  \caption{本文框架各模块在 Xiaomi 14（MNN/FP16/CPU 4线程）上的实测延迟（单人场景）}
+  \caption{各模块实测延迟}
   \label{tab:module_latency}
   \begin{tabular}{lccl}
     \toprule
@@ -1413,42 +1415,45 @@ MADS~\citess{zhang2017mads} & （待补） \\
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.55\textwidth]{images/ModuleDelayRatioFanChart}
-  \caption{各模块端到端延迟占比（Xiaomi\,14，MNN/FP16/CPU 4线程，单人场景）}
+  \includegraphics[width=0.68\textwidth]{images/ModuleDelayRatioFanChart}
+  \caption{各模块端到端延迟占比}
   \label{fig:module_delay_pie}
 \end{figure}
 
-由表~\ref{tab:module_latency} 与图~\ref{fig:module_delay_pie} 可得到以下结论。
-
-（1）骨干网络是延迟主体：左右两分支合计占端到端总延迟的绝大部分，其中左分支（全量 CSPDarknet-M）因通道宽度更大（步幅 $s\!=\!8/16/32$ 处分别为 256/512/1024 通道）而耗时显著高于右分支（128/256/512 通道）；这一分布说明骨干推理阶段是优化的首要目标。
-
-（2）EFEM 贡献可观的额外开销：极线注意力模块在 $1/16$ 分辨率特征图上沿视差窗口执行相关运算，由于需要对左分支键值特征进行逐视差位移采样，访存模式不规则，导致其实测延迟与其理论 FLOPs 占比不成正比，是量化收益的次要来源。
-
-（3）可微加权三角化求解器延迟可忽略：可微加权三角化仅在 $J\!=\!17$ 个关节上执行 $4\!\times\!4$ 矩阵运算，批大小为 1 时计算量极小，在端到端延迟中占比低于 1\%，无量化必要。
-
-\paragraph{CSPDarknet 结构特性与量化适应性分析。}
-CSPDarknet 对 INT8 量化具有天然适应性（网络结构详见第三章图~\ref{fig:cspdarknet_arch}），体现在三个方面。第一，Conv-BN 可融合：骨干中所有卷积均为标准 Conv+BN+SiLU 结构，MNN 图优化可自动将 BN 参数吸收至前置 Conv 权重，量化对象简化为单一权重矩阵，per-channel 对称量化可精确建模各输出通道的幅值分布。第二，激活分布稳定：SiLU 输出动态范围有界，权重幅值在 BN 归一化后集中，per-channel 缩放因子覆盖率高、量化误差小。第三，延迟由算术负载主导：非对称双分支（左 width=1.0，右 width=0.5）实测延迟比约 3.95$\times$（76.7ms vs.\,19.4ms），与理论计算量比吻合，说明骨干延迟由卷积算术负载决定，INT8 dotprod 加速可直接转化为延迟收益，左分支为首要优化目标。
-
-图~\ref{fig:cspdarknet_stage_pie} 给出双分支各阶段延迟占比。P3/P4 阶段合计约占各分支延迟 70\%（分辨率适中、通道数大，FLOPs 密度最高），是 INT8 量化加速的主要来源；Stem 通道少延迟低；P5 虽通道最多，但分辨率最小（$15\times20$），FLOPs 绝对值反而低于 P4。
+由表~\ref{tab:module_latency} 与图~\ref{fig:module_delay_pie} 可知，骨干网络是延迟的绝对主体；进一步地，图~\ref{fig:cspdarknet_stage_pie} 给出骨干内部各阶段的延迟分布，以定位量化的最优优先级。
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.96\textwidth]{images/CSPDarknetStageLatencyPie}
-  \caption{CSPDarknet 双分支各阶段延迟占比（FLOPs 比例估算）。
-           左：CSPDarknet-M（左分支，width=1.0，共 76.7\,ms）；
-           右：CSPDarknet-N（右分支，width=0.5，共 19.4\,ms）。}
+  \caption{CSPDarknet 各阶段延迟占比}
   \label{fig:cspdarknet_stage_pie}
 \end{figure}
 
+在确认骨干网络是主要热点之后，还需要进一步回答“骨干内部哪些部分最值得优先量化”。从结构上看，CSPDarknet 对 INT8 量化具有天然适应性（网络结构详见第三章图~\ref{fig:cspdarknet_arch}），体现在三个方面。第一，Conv-BN 可融合：骨干中所有卷积均为标准 Conv+BN+SiLU 结构，MNN 图优化可自动将 BN 参数吸收至前置 Conv 权重，量化对象简化为单一权重矩阵，per-channel 对称量化可精确建模各输出通道的幅值分布。第二，激活分布稳定：SiLU 输出动态范围有界，权重幅值在 BN 归一化后集中，per-channel 缩放因子覆盖率高、量化误差小。第三，延迟由算术负载主导：非对称双分支（左 width=1.0，右 width=0.5）实测延迟比约 3.95$\times$（76.7ms vs.\,19.4ms），与理论计算量比吻合，说明骨干延迟由卷积算术负载决定，INT8 dotprod 加速可直接转化为延迟收益。
+
+图~\ref{fig:cspdarknet_stage_pie} 进一步给出双分支各阶段延迟占比。P3/P4 阶段合计约占各分支延迟 70\%（分辨率适中、通道数大，FLOPs 密度最高），是 INT8 量化加速的主要来源；Stem 通道少延迟低；P5 虽通道最多，但分辨率最小（$15\times20$），FLOPs 绝对值反而低于 P4。
+
+由表~\ref{tab:module_latency}、图~\ref{fig:module_delay_pie} 与图~\ref{fig:cspdarknet_stage_pie} 可得到以下结论：
+
+1）骨干网络是端侧延迟的绝对主体，左右两分支合计占据端到端总延迟的大部分，其中左分支由于通道宽度更大而成为首要优化热点。
+
+2）骨干内部又以 P3/P4 为最值得优先量化的主加速区，INT8 收益预计主要来自这一部分主体卷积。
+
+3）EFEM 虽然占比次于骨干，但由于存在不规则访存，其收益模式不能仅凭 FLOPs 判断，需要在 4.2.2 节进一步辨别其究竟受算力还是带宽约束。
+
+4）可微加权三角化求解器延迟占比不足 1\%，在性能侧不构成量化重点。
+
 \subsubsection{Roofline 分析：访存密集型与计算密集型模块辨别}
 
-Roofline 模型以算术强度（Arithmetic Intensity, AI）刻画算子“算得多还是搬得多”，其中
+在 4.2.1 已经确认“骨干是主热点、EFEM 是次级热点”之后，4.2.2 进一步回答“这些热点为何形成瓶颈，以及量化收益主要来自哪里”。为此，引入 Roofline 模型以算术强度（Arithmetic Intensity, AI）刻画算子“算得多还是搬得多”，其中
 $\mathrm{AI}=\text{FLOPs}/\text{bytes}$（FLOP/byte）。在给定硬件上，理论可达性能满足
 \[
   P \le \min\!\bigl(P_{\text{peak}},\, B_{\text{eff}}\cdot \mathrm{AI}\bigr),
 \]
 其中 $P_{\text{peak}}$ 为计算峰值、$B_{\text{eff}}$ 为有效带宽。该模型用于判断第三章各模块属于“计算密集”（受算力限制）还是“访存密集”（受带宽限制），从而为后续量化策略确定优先级与预期收益来源。
 
+
+之所以在 Roofline 中采用 $B_{\text{eff}}$ 而非 $B_{\text{peak}}$，关键原因在于推理阶段存在明显的 LLC 容量瓶颈：FP16 基线权重约 23.4\,MB，显著超过 LLC（8\,MB），骨干权重难以整体驻留片上，前向过程中需要按层从 LPDDR5X 流水加载，导致 LLC 缺失频繁。表~\ref{tab:memory_hierarchy} 给出存储层次的容量与带宽量级（L1/L2 为每核独享，LLC 为四核共享）。
 
 实验平台为 Xiaomi\,14（Snapdragon 8 Gen3，大核集群 1×Cortex-X4@3.3\,GHz + 3×Cortex-A720@3.15\,GHz）。在 NEON FP16 下取 4 线程理论峰值算力
 $P_{\text{peak}}\approx100\,\text{GFLOPS}$；LPDDR5X 双通道理论带宽
@@ -1459,13 +1464,10 @@ $B_{\text{eff}}\approx40\,\text{GB/s}$。由此屋脊点为
 \]
 因此 $\mathrm{AI}<2.5$ 的算子主要受带宽约束，$\mathrm{AI}>2.5$ 的算子主要受算力约束。
 
-\paragraph{缓存约束与 $B_{\text{eff}}$ 取值依据。}
-推理阶段的关键在于 LLC 容量瓶颈：FP16 基线权重约 23.4\,MB，显著超过 LLC（8\,MB），骨干权重难以整体驻留片上，前向过程中需要按层从 LPDDR5X 流水加载，导致 LLC 缺失频繁。因此在 Roofline 中采用 $B_{\text{eff}}$ 而非 $B_{\text{peak}}$，以反映实际访存上限。表~\ref{tab:memory_hierarchy} 给出存储层次的容量与带宽量级（L1/L2 为每核独享，LLC 为四核共享）。
-
 \begin{table}[htbp]
   \centering
   \small
-  \caption{骁龙 8 Gen3 存储层次参数（推理阶段相关性分析）}
+\caption{骁龙 8 Gen3 存储层次参数}
   \label{tab:memory_hierarchy}
   \begin{tabular}{llll}
     \toprule
@@ -1479,8 +1481,7 @@ $B_{\text{eff}}\approx40\,\text{GB/s}$。由此屋脊点为
   \end{tabular}
 \end{table}
 
-\paragraph{模型各模块算术强度计算与分类}
-以 FP16、batch=1 估算各模块的 AI。对于 $3\times3$ 卷积（输入通道 $C_{\text{in}}$、输出通道 $C_{\text{out}}$、分辨率 $H\!\times\! W$），有
+在上述硬件参数设定下，进一步估算各模块在 FP16、batch=1 条件下的 AI。对于 $3\times3$ 卷积（输入通道 $C_{\text{in}}$、输出通道 $C_{\text{out}}$、分辨率 $H\!\times\! W$），有
 \[
   \mathrm{AI}_{3\times3}
   = \frac{2\,C_{\text{in}}\cdot 9\cdot C_{\text{out}}\cdot HW}
@@ -1495,7 +1496,7 @@ $\mathrm{AI}\approx15.7$\,FLOP/byte 虽位于屋脊点右侧，但相较骨干�
 \begin{table}[htbp]
   \centering
   \small
-  \caption{各模块算术强度与瓶颈类型（Roofline 分析，FP16，batch=1）}
+\caption{各模块算术强度与瓶颈类型}
   \label{tab:roofline_summary}
   \begin{tabular}{llcc}
     \toprule
@@ -1515,40 +1516,37 @@ $\mathrm{AI}\approx15.7$\,FLOP/byte 虽位于屋脊点右侧，但相较骨干�
 
 图~\ref{fig:roofline} 给出理论可达点（空心）与实测工作点（实心）的对比。骨干卷积位于计算密集区，实测硬件利用率为 72--83\%，与计算屋顶的差距主要来自指令调度开销与数据依赖气泡；EFEM gather 位于极端访存密集区，实测仅达到有效带宽上限的约 33\%，反映出不规则访存带来的 TLB 缺失与访存合并效率下降；EFEM 投影与预测头处在屋脊点附近，实测约为理论上限的 44--50\%，受小尺寸算子启动与调度开销影响更明显。
 
+需要说明的是，图中的“实测工作点”并非逐算子硬件性能计数器的直接采样值，而是由模块级时延统计结合算术强度估算得到，用于反映不同模块在目标平台上的相对瓶颈位置，而非作为绝对硬件计数结果。
+
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.82\textwidth]{images/roofline.pdf}
-  \caption{骁龙 8 Gen3 CPU 各模块 Roofline 分析（FP16，4 线程，batch=1）。
-           空心点为理论可达点，实心点为实测工作点（按比例时延估算）；括号为相对理论上限的利用率。
-           屋脊点为 2.5\,FLOP/byte：左侧为访存密集区，右侧为计算密集区。}
+  \caption{各模块 Roofline 分析}
   \label{fig:roofline}
 \end{figure}
 
-\paragraph{Roofline分析结论}
-上述结果表明：骨干卷积的瓶颈主要在算力侧，INT8 可通过 ARMv8.2 dotprod 将 4 线程吞吐提升至约 FP16 的 $2\times$（约 200\,GOPS），从而直接缩短卷积耗时；EFEM 投影/头部卷积及 gather 更易受带宽效率影响，INT8 权重可将 DRAM 读入字节数减半（2\,B/param $\rightarrow$ 1\,B/param），并通过更高缓存命中率进一步改善有效带宽利用。两类收益叠加，端到端延迟理论上可达约 1.5--1.7$\times$ 加速，模型体积约 $2\times$ 压缩（具体取决于分层混合精度的权重占比）。
+综合图~\ref{fig:roofline} 与表~\ref{tab:roofline_summary} 可得到以下结论：
+
+1）骨干卷积的瓶颈主要位于算力侧，INT8 可借助 ARMv8.2 dotprod 将 4 线程吞吐提升至约 FP16 的 $2\times$（约 200\,GOPS），从而直接缩短主体卷积耗时。
+
+2）EFEM 投影、头部卷积及 gather 更接近或落在带宽受限区域，INT8 权重的主要收益来自减少 DRAM 读入字节数（2\,B/param $\rightarrow$ 1\,B/param）并提升缓存命中率。
+
+3）后续量化方案应将“骨干卷积作为主要加速来源、将 EFEM gather 等访存密集算子视作收益受限对象”作为基本原则。
+
+4）在该瓶颈结构下，端到端收益预期约为 1.5--1.7$\times$ 延迟加速，并伴随约 $2\times$ 的模型压缩（具体取决于分层混合精度的权重占比）。
 
 \subsubsection{量化敏感性分析}
 
-上一小节的 Roofline 结果表明，INT8 量化在算力侧（骨干卷积）与带宽侧（EFEM 投影、gather 等）均存在潜在收益。但端到端三维姿态估计同时包含相关性匹配、softmax 归一化与几何求解等数值敏感环节，若盲目对全部层施加 INT8 可能引入不可接受的几何误差。因此，本节在量化前对各模块进行敏感性筛查，识别“可安全量化”的主体层与“必须保护”的高敏感模块，为后续分层混合精度方案提供依据。
+经过 4.2.1 与 4.2.2 的分析，已经知道“量化收益主要应来自骨干卷积，EFEM 中部分算子收益受带宽约束限制”。但这仍不足以直接给出量化范围，因为端到端三维姿态估计同时包含相关性匹配、softmax 归一化与几何求解等数值敏感环节，若盲目对全部层施加 INT8 可能引入不可接受的几何误差。因此，4.2.3 最后回答“哪些热点可以量化、哪些关键环节必须保护”，通过量化前敏感性筛查识别“可安全量化”的主体层与“必须保护”的高敏感模块，为后续分层混合精度方案提供依据。
 
-\paragraph{实验设置与度量指标}
-以第三章 FP16 模型为基线，在 RT-Pose 验证集上以 MPJPE 均值作为精度指标。采用逐组替换的方式：每次仅将某一模块的权重或激活替换为 INT8 表示（per-channel 对称量化），其余模块保持 FP16，记录相对基线的变化量 $\Delta\text{MPJPE}$。其中权重量化对应卷积权重的静态离散化；激活量化对应中间特征图的动态离散化，两者对数值稳定性的影响路径不同。
-
-\paragraph{结果与关键结论}
-表~\ref{tab:quant_sensitivity} 给出各模块的 $\Delta\text{MPJPE}$ 与推荐处置，可归纳为三点：
-
-1）骨干与 EFEM 投影的权重量化整体低敏感（$\Delta\text{MPJPE}<2.5$\,mm），适合作为 INT8 量化的主要覆盖对象；
-
-2）EFEM 注意力分数与 DWT 求解相关激活对量化高度敏感（$\Delta\text{MPJPE}\approx6.8$--$7.3$\,mm），应作为精度保护层；
-
-3）热力图与置信度头输出激活呈中等敏感（$+3$--$4$\,mm），为避免峰值判别退化，同样建议保护。
+为使这一筛查结论可直接服务于后续精度分配，本节以第三章 FP16 模型为基线，在 RT-Pose 验证集上以 MPJPE 均值作为精度指标。采用逐组替换的方式：每次仅将某一模块的权重或激活替换为 INT8 表示（per-channel 对称量化），其余模块保持 FP16，记录相对基线的变化量 $\Delta\text{MPJPE}$。其中权重量化对应卷积权重的静态离散化；激活量化对应中间特征图的动态离散化，两者对数值稳定性的影响路径不同。
 
 \begin{table}[htbp]
   \centering
   \small
-  \caption{各模块 INT8 量化敏感性分析（与 FP16 基线相比，RT-Pose 验证集）}
+\caption{各模块 INT8 量化敏感性分析}
   \label{tab:quant_sensitivity}
-  \begin{tabular}{llccc}
+  \begin{tabular}{@{}p{0.31\textwidth}p{0.10\textwidth}p{0.16\textwidth}p{0.10\textwidth}p{0.19\textwidth}@{}}
     \toprule
     量化目标 & 量化类型 & $\Delta$MPJPE (mm)$\uparrow$ & 敏感等级 & 推荐处置 \\
     \midrule
@@ -1563,40 +1561,42 @@ $\mathrm{AI}\approx15.7$\,FLOP/byte 虽位于屋脊点右侧，但相较骨干�
   \end{tabular}
 \end{table}
 
-\paragraph{误差来源解释与保护策略。}
-从运算特性看，高敏感模块均包含“差异放大”的数值环节：EFEM 注意力分数进入 softmax 后，细微分数差异将影响匹配权重分布；DWT 依赖小规模矩阵分解/求解，离散化误差容易直接传递到三维坐标；热力图与置信度输出则决定峰值定位与可信度筛选，对输出分辨率与峰形更敏感。综合结果与 MNN CPU 推理对混合精度的实现方式（量化豁免层以 FP32 执行），本文将精度保护层定义为：EFEM 注意力分数（激活，FP32）、热力图与置信度头输出（激活，FP32）、DWT 三角化求解器（全模块，FP32）；其余主体卷积与投影层按 INT8 per-channel 量化。
+从运算特性看，高敏感模块均包含“差异放大”的数值环节：EFEM 注意力分数进入 softmax 后，细微分数差异将影响匹配权重分布；DWT 依赖小规模矩阵分解/求解，离散化误差容易直接传递到三维坐标；热力图与置信度输出则决定峰值定位与可信度筛选，对输出分辨率与峰形更敏感。综合敏感性结果与 MNN CPU 推理对混合精度的实现方式（量化豁免层以 FP32 执行），由表~\ref{tab:quant_sensitivity} 可得到以下结论：
+
+1）骨干与 EFEM 投影的权重量化整体低敏感（$\Delta\text{MPJPE}<2.5$\,mm），可作为后续 INT8 量化的主要覆盖对象。
+
+2）EFEM 注意力分数与 DWT 求解相关激活对量化高度敏感（$\Delta\text{MPJPE}\approx6.8$--$7.3$\,mm），应作为精度保护层。
+
+3）热力图与置信度头输出激活呈中等敏感（$+3$--$4$\,mm），为避免峰值判别退化，同样建议保护。
+
 
 \subsection{混合精度量化方案设计}
 
-综合 4.2.1 的延迟拆解、4.2.2 的 Roofline 瓶颈判别与 4.2.3 的敏感性筛查结果，本节将“瓶颈位置”和“误差风险”统一到同一设计框架下。设计目标可概括为：在保持几何推理稳定性的前提下，最大化主体卷积层的 INT8 覆盖率，使量化收益尽可能来自真正主导时延的模块，而不是来自边缘算子的局部压缩。
+综合 4.2.1 的延迟拆解、4.2.2 的 Roofline 瓶颈判别与 4.2.3 的敏感性筛查结果，本节将“瓶颈位置”和“误差风险”统一到同一设计框架下。与仅直接给出量化配置不同，本文在本章中提出一套面向目标平台的三步式决策框架：先通过延迟拆解与 Roofline 定位性能瓶颈，再通过量化敏感性分析识别风险层，最后据此设计分层混合精度与 PTQ 校准流程。
+
+设计目标可概括为：在保持几何推理稳定性的前提下，最大化主体卷积层的 INT8 覆盖率，使量化收益尽可能来自真正主导时延的模块，而不是来自边缘算子的局部压缩。
 
 \subsubsection{分层精度分配方案}
 
-\paragraph{设计原则。}
-本方案首先回答“什么应优先量化、什么必须保护”。依据 4.2 的证据链结果，骨干与 EFEM 的主体卷积层既主导端侧时延，又表现出较低量化敏感性，因此应作为 INT8 的主要覆盖对象；相反，EFEM 注意力分数、热力图/置信度输出以及 DWT 求解器虽然参数占比很小，却直接影响匹配分布、峰值判别和三维求解稳定性，更适合作为 FP32 保护路径。换言之，本文的混合精度分配并非按模块大小划分，而是按“性能贡献 × 数值风险”的联合标准划分。
+4.3.1 的目标是把 4.2 的分析结果落到可执行的精度分配上。依据“性能贡献 × 数值风险”的联合标准，骨干与 EFEM 的主体卷积层既主导端侧时延，又表现出较低量化敏感性，因此作为 INT8 的主要覆盖对象；相反，EFEM 注意力分数、热力图/置信度输出以及 DWT 求解器虽然参数占比很小，却直接影响匹配分布、峰值判别和三维求解稳定性，因此统一保留为 FP32 保护路径。保护层采用 FP32 的依据既包括前述敏感性分析结果，也与当前 MNN CPU 混合精度执行路径对量化豁免层的实现方式保持一致；也就是说，这里并非额外设计独立的 FP16 激活量化路径，而是让方法选择与工具链实现保持一致。
 
-\paragraph{量化范围。}
-基于上述原则，本文混合精度采用\textbf{权重静态量化（weight-only PTQ）}：仅对主体卷积权重执行 INT8，以避免在高敏感激活上引入新的误差传播链；对被豁免的高风险算子，MNN 在 CPU 侧保持 FP32 执行，DWT 三角化求解器则以旁路 FP32 形式运行，不进入量化图。这样，量化范围与 4.2 中识别出的低风险高收益区域保持一致。为给出该设计的收益上限与精度代价参照，4.4 同时测试启用激活量化的“激进 INT8”配置。
-
-\paragraph{量化格式。}
-在 INT8 权重量化实现上，本文选用 per-channel 对称方案。各输出通道经 BN 归一化后仍存在幅值差异（stride=32 处通道间差异可达 $6\times$），per-channel 缩放因子可精确适配各通道动态范围，优于 per-tensor 的单一缩放；对称量化（零点固定为 0）使骁龙 8\,Gen3 的 ARMv8.2 dotprod 指令无需零点偏置修正，对骨干大卷积有实际吞吐收益。
-
-表~\ref{tab:precision_allocation} 给出具体分层方案。
+在具体实现上，主体卷积采用 INT8 权重与激活联合量化，权重量化选用 per-channel 对称方案，以适配各输出通道在 BN 融合后仍存在的幅值差异，并避免 ARMv8.2 dotprod 的零点偏置修正开销。EFEM 的投影与融合卷积参与 INT8 校准，但 gather/correlation 本身不作为独立 INT8 加速对象处理；后训练量化的直方图校准流程放在 4.3.2 中单独说明，具体分层方案如表~\ref{tab:precision_allocation} 所示。
 
 \begin{table}[htbp]
   \centering
   \small
   \caption{本文分层混合精度量化方案}
   \label{tab:precision_allocation}
-  \begin{tabular}{llll}
+  \begin{tabular}{@{}p{0.27\textwidth}p{0.12\textwidth}p{0.17\textwidth}p{0.30\textwidth}@{}}
     \toprule
     模块 & 操作对象 & 分配精度 & 设计依据 \\
     \midrule
-    左骨干（全部 Conv+BN）                  & 权重 & INT8 per-channel & 低敏感；计算/访存密集 \\
-    右骨干（全部 Conv+BN）                  & 权重 & INT8 per-channel & 低敏感；计算/访存密集 \\
-    EFEM 投影（$\varphi_q/\varphi_k/\varphi_v$）& 权重 & INT8 per-channel & 低敏感；访存密集 \\
+    左骨干（全部 Conv+BN）                  & 权重+激活 & INT8 & 低敏感；计算/访存密集 \\
+    右骨干（全部 Conv+BN）                  & 权重+激活 & INT8 & 低敏感；计算/访存密集 \\
+    EFEM 投影（$\varphi_q/\varphi_k/\varphi_v$）& 权重+激活 & INT8 & 低敏感；访存密集 \\
+    EFEM gather/correlation               & 激活 & FP32（不量化） & 极端访存密集；非规则访存，不作为独立 INT8 主收益来源 \\
     EFEM 注意力分数（scores）               & 激活 & FP32（不量化）   & 高敏感；视差匹配精度 \\
-    EFEM 聚合与融合（$\psi$）               & 权重 & INT8 per-channel & 低敏感 \\
+    EFEM 聚合与融合（$\psi$）               & 权重+激活 & INT8 & 低敏感 \\
     热力图头（左/右）                       & 权重+激活 & FP32（不量化）& 中敏感；坐标回归精度 \\
     置信度头（左/右）                       & 权重+激活 & FP32（不量化）& 中敏感；权重自适应精度 \\
     DWT 三角化求解器                        & 全部 & FP32（不量化）   & 极高敏感；数值稳定性 \\
@@ -1604,36 +1604,75 @@ $\mathrm{AI}\approx15.7$\,FLOP/byte 虽位于屋脊点右侧，但相较骨干�
   \end{tabular}
 \end{table}
 
-INT8 量化覆盖左/右骨干全部卷积权重及 EFEM 投影/聚合卷积权重，合计约 11.6\,M 参数，占模型总参数的 99.1\%；FP32 保留层（EFEM 注意力分数激活、热力图与置信度头权重、DWT）仅约 0.1\,M 参数。混合精度模型理论大小约 12.0\,MB，实际 MNN 文件约 15.2\,MB（差异来源于 per-channel 缩放因子存储与 protobuf 结构开销），相比 FP16 基线（23.4\,MB）减小约 35\%。
+表~\ref{tab:precision_allocation} 对应的实际覆盖范围为：INT8 量化覆盖左/右骨干全部卷积层及 EFEM 投影/聚合卷积层，合计约 11.6\,M 参数，占模型总参数的 99.1\%；FP32 保留层仅约 0.1\,M 参数。由此，主体卷积的权重访存与整数算子占比同步下降，混合精度模型理论大小约 12.0\,MB，实际 MNN 文件约 15.2\,MB。二者之间约 3.2\,MB 的差异并非来自额外主体权重，而主要由三部分构成：逐通道 scale/zero-point 等量化参数表、模型序列化所需的张量描述与算子元数据，以及文件存储中的内存对齐与块组织开销。因此，实际文件大小会高于仅按裸权重字节数估算的理论值。相比 FP16 基线（23.4\,MB），最终模型大小仍减小约 35\%。
 
 \subsubsection{后训练量化实施}
 
-本文采用后训练量化（PTQ）生成可部署的混合精度模型，而不引入量化感知训练（QAT）。其原因不在于 PTQ 工程实现更简单，而在于本章的量化对象主要是经 BN 归一化的标准卷积权重：这部分权重分布稳定、量化敏感性低，适合直接采用 per-channel 对称量化；相反，真正高风险的激活与几何求解链路已被保留为 FP32，因此无需通过 QAT 进一步学习误差补偿。换言之，PTQ 在本文中是由问题条件决定的部署选择，而不是经验性的工程折中。整体流程如图~\ref{fig:ptq_pipeline} 所示。
+本文采用后训练量化（PTQ）生成可部署的混合精度模型，而不引入量化感知训练（QAT）。原因在于主体卷积的统计分布较稳定，适合通过离线校准确定量化区间；高风险激活与几何求解链路则已保留为 FP32。图~\ref{fig:ptq_pipeline} 展示了从 PyTorch 模型出发，经 ONNX 导出、\texttt{mnnconvert} 图优化、代表集校准到真机验证的部署流程，其中 DWT 求解器以旁路 FP32 形式运行，不进入 ONNX/MNN 量化图。
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.98\textwidth]{images/PTQPipeline}
-  \caption{混合精度量化 PTQ 部署流程。从 PyTorch 训练模型出发，经 ONNX 导出、\texttt{mnnconvert} 图优化（Conv-BN 融合$+$INT8 per-channel 权重量化$+$豁免层配置）生成 \texttt{model\_mixed.mnn}，最终在 Xiaomi\,14 真机上验证推理延迟；DWT 求解器以旁路 FP32 脚本形式运行，不经过 ONNX/MNN 量化路径。}
+  \caption{混合精度量化 PTQ 部署流程图}
   \label{fig:ptq_pipeline}
 \end{figure}
 
-表~\ref{tab:ptq_config} 汇总本文 PTQ 的关键配置。本文采用 weight-only PTQ：借助 \texttt{mnnconvert} 对卷积权重执行 INT8 per-channel 对称量化，并通过豁免列表保留高敏感张量的 FP32 路径；DWT 求解器以旁路 FP32 形式运行，不进入 ONNX/MNN 量化图。模型转换完成后，仅进行输入输出一致性检查与真机推理验证，不再引入额外训练或校准步骤。
+表~\ref{tab:ptq_config} 汇总本文 PTQ 的关键配置。本文借鉴 NCNN 的直方图校准策略：以代表性样本逐层统计激活分布，搜索各层 INT8 截断阈值，并将得到的 scale/clip 范围写入量化配置；EFEM gather/correlation、EFEM scores、热力图/置信度输出与 DWT 通过豁免列表保留 FP32。模型转换完成后，仅进行一致性检查与真机验证，不再引入额外训练。
+
+本文所采用的 PTQ 校准流程借鉴 \texttt{ncnn2table} 思路，其核心是利用激活直方图而非直接采用极值来确定截断阈值。本文从 RT-Pose 训练集中划分 256 组不参与训练的双目样本作为代表性校准集，并保持与部署阶段一致的输入分辨率 $640\times480$ 与 batch=1 预处理流程。校准时，逐层统计骨干卷积与 EFEM 投影/聚合层的激活直方图，枚举候选截断阈值，并以 Kullback-Leibler（KL）散度衡量量化分布与原始分布之间的信息损失；使 KL 散度最小的阈值被选作最终 clip 值，再换算为激活 scale。相较于简单 min-max，该方法对异常大值更稳健，更适合本文中存在长尾响应的跨视图特征张量。算法流程如算法~\ref{alg:ncnn_hist_ptq} 所示。
+
+\begin{algorithm}
+  \caption{基于直方图校准的 PTQ 量化算法}
+  \label{alg:ncnn_hist_ptq}
+  \renewcommand{\algorithmicrequire}{Input:}
+  \renewcommand{\algorithmicensure}{Output:}
+  \begin{algorithmic}[1]
+    \REQUIRE 浮点模型 $\mathcal{M}_{fp}$；代表性校准集 $\mathcal{D}_{cal}$（256 组双目样本）；可量化层集合 $\mathcal{L}_q$；直方图 bin 数 $B$；INT8 量化级数 $Q=128$
+    \ENSURE 各层量化参数表 $\mathcal{T}=\{(s_l,c_l)\mid l\in\mathcal{L}_q\}$
+    \STATE 根据 4.2.3 节敏感性分析，移除 EFEM scores、热力图/置信度输出与 DWT，得到低敏感可量化层集合 $\mathcal{L}_q$
+    \FOR{each $l \in \mathcal{L}_q$}
+      \STATE 初始化该层激活统计直方图 $H_l\in\mathbb{R}^{B}$，并置最大绝对值 $a_l^{max}\gets 0$
+    \ENDFOR
+    \FOR{each 样本 $x \in \mathcal{D}_{cal}$}
+      \STATE 将 $x$ 输入浮点模型 $\mathcal{M}_{fp}$，前向计算所有 $l\in\mathcal{L}_q$ 的激活张量 $\mathbf{A}_l(x)$
+      \FOR{each $l \in \mathcal{L}_q$}
+        \STATE 更新 $a_l^{max}\gets \max(a_l^{max}, \max |\mathbf{A}_l(x)|)$
+        \STATE 以区间 $[0,a_l^{max}]$ 为范围，将 $|\mathbf{A}_l(x)|$ 累计到直方图 $H_l$
+      \ENDFOR
+    \ENDFOR
+    \FOR{each $l \in \mathcal{L}_q$}
+      \FOR{each 候选截断 bin $t \gets Q,\cdots,B$}
+        \STATE 将直方图 $H_l[1:t]$ 压缩为 $Q$ 个量化区间，并把尾部 $H_l[t+1:B]$ 累加到最后一个区间
+        \STATE 对压缩后的分布做反量化展开，得到近似分布 $\hat{H}_{l,t}$
+        \STATE 计算 KL 散度 $D_{KL}(H_l[1:t]\|\hat{H}_{l,t})$
+      \ENDFOR
+      \STATE 取 $t^\star=\arg\min_t D_{KL}(H_l[1:t]\|\hat{H}_{l,t})$
+      \STATE 计算截断阈值 $c_l=\dfrac{t^\star}{B}a_l^{max}$ 与量化尺度 $s_l=\dfrac{c_l}{Q-1}$
+      \STATE 将 $(s_l,c_l)$ 写入量化参数表 $\mathcal{T}$
+    \ENDFOR
+    \STATE 利用量化参数表 $\mathcal{T}$ 对 MNN 图中对应层执行 INT8 权重/激活量化，并保留豁免层为 FP32
+  \end{algorithmic}
+\end{algorithm}
+
+需要指出的是，该直方图校准方法仅用于低敏感层的 INT8 区间估计，而非对全网络统一量化。根据 4.2.3 节的敏感性结论，EFEM gather/correlation、EFEM softmax 前注意力分数、热力图/置信度输出以及 DWT 求解器在校准前即被移出统计列表，不参与直方图建表。因此，本文的 PTQ 流程可概括为两步：先按敏感性确定可量化层集合，再对该集合执行直方图校准。
 
 \begin{table}[htbp]
   \centering
   \small
-  \caption{后训练量化（PTQ）关键配置（本文混合精度，weight-only）}
+  \caption{后训练量化关键配置表}
   \label{tab:ptq_config}
-  \begin{tabular}{lll}
+  \begin{tabular}{@{}p{0.16\textwidth}p{0.22\textwidth}p{0.46\textwidth}@{}}
     \toprule
     项目 & 设置 & 说明 \\
     \midrule
     导出格式 & ONNX（opset 17） & 输入固定 $[1,3,480,640]$（batch=1） \\
     图优化 & Conv-BN 融合、常量折叠 & 由 \texttt{mnnconvert} 自动完成 \\
-    量化对象 & 仅卷积权重（weight-only） & 避免引入激活量化误差链路 \\
-    位宽与粒度 & INT8，per-channel 对称 & 适配 dotprod，通道尺度更稳健 \\
-    豁免策略 & 高敏感激活/求解保留 FP32 & EFEM scores、热力图/置信度输出、DWT \\
-    校准数据 & 不需要 & 权重静态量化由权重统计量确定 \\
+    量化对象 & 主体卷积的权重与激活 & 骨干与 EFEM 投影/聚合层参与 INT8 校准 \\
+    权重量化 & INT8，per-channel 对称 & 通道尺度更稳健，适配 dotprod \\
+    激活量化 & INT8，直方图截断 & 基于直方图/KL 的校准方法 \\
+    豁免策略 & 高敏感激活/求解保留 FP32 & EFEM gather/correlation、EFEM scores、热力图/置信度输出、DWT \\
+    校准数据 & RT-Pose 代表集 & 仅用于统计分布，不参与参数更新 \\
+    校准样本数 & 256 组双目样本 & 从训练集划分，不参与训练，仅用于激活统计 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1646,7 +1685,7 @@ INT8 量化覆盖左/右骨干全部卷积权重及 EFEM 投影/聚合卷积权�
 
 硬件平台与推理环境。 实验在 Xiaomi\,14 真机（Snapdragon 8 Gen3，16\,GB LPDDR5X）上进行，推理框架采用 MNN 2.9.0，编译时启用 ARMv8.2 dotprod 与 FP16 NEON 支持。为保证不同精度配置间的可比性，所有实验均固定 4 线程 CPU 执行环境（1×Cortex-X4 + 3×Cortex-A720），并将推理进程绑定至大核集群以减小线程调度带来的波动。每种配置预热 10 次后正式计时 100 次，取均值作为延迟报告值；批大小固定为 1，输入分辨率统一为 $640\times480$。
 
-对比配置。 本节测试四种精度配置：（1）FP32 全精度，作为精度上界与速度下界；（2）FP16 全精度（第三章基线）；（3）激进 INT8，在权重量化基础上进一步启用激活量化以追求最大加速，DWT 保留 FP32；（4）本文混合精度（weight-only PTQ），依据表~\ref{tab:precision_allocation} 仅对主体卷积执行 INT8 权重量化，对高敏感激活与求解器保持 FP32。四种配置共享相同的网络结构、输入尺寸与推理协议，仅精度设置不同；因此其性能差异可主要归因于量化策略本身。
+对比配置。 本节测试四种精度配置：（1）FP32 全精度，作为精度上界与速度下界；（2）FP16 全精度（第三章基线）；（3）激进 INT8，在主体卷积量化基础上进一步扩大激活量化覆盖范围以追求最大加速，DWT 保留 FP32；（4）本文混合精度，依据表~\ref{tab:precision_allocation} 仅对低敏感主体卷积执行 INT8 权重/激活量化，对高敏感激活与求解器保持 FP32。四种配置共享相同的网络结构、输入尺寸与推理协议，仅精度设置不同；因此其性能差异可主要归因于量化策略本身。
 
 评估指标。 精度以 RT-Pose 验证集上的 MPJPE 均值（mm）衡量，同时记录与 FP16 基线的偏差 $\Delta\text{MPJPE}$；效率以端到端推理延迟（ms，单人场景）和模型文件大小（MB）表征，加速比以 FP16 基线（1.00$\times$）为参考归一化。
 
@@ -1657,7 +1696,7 @@ INT8 量化覆盖左/右骨干全部卷积权重及 EFEM 投影/聚合卷积权�
 \begin{table}[htbp]
   \centering
   \small
-  \caption{不同精度配置的精度--效率综合对比（RT-Pose 验证集，Xiaomi\,14/MNN，单人场景）}
+\caption{不同精度配置的精度与效率对比}
   \label{tab:quant_comparison}
   \begin{tabular}{lcccccc}
     \toprule
@@ -1671,7 +1710,7 @@ INT8 量化覆盖左/右骨干全部卷积权重及 EFEM 投影/聚合卷积权�
   \end{tabular}
 \end{table}
 
-表~\ref{tab:quant_comparison} 反映出三点。其一，FP32 与 FP16 的 MPJPE 完全一致，而 FP16 延迟仅为 FP32 的约 56\%，说明本任务在端侧采用 FP16 不会带来可观测精度损失。其二，激进 INT8 虽取得最高加速比（1.71$\times$），但 MPJPE 增量达到 $+13.4\,\text{mm}$，说明对高敏感激活继续量化会显著破坏跨视图匹配与坐标回归精度。其三，本文混合精度以 72.3\,ms 的延迟实现 1.60$\times$ 加速，同时仅带来 $+2.2\,\text{mm}$ 的 MPJPE 增量，表明主要收益已由主体权重量化获得，而关键保护层有效抑制了额外精度损失。综合而言，本文方案保留了激进 INT8 的主要加速收益，同时显著抑制了精度退化，因此在目标平台上表现出更优的精度--效率折中。
+表~\ref{tab:quant_comparison} 反映出三点。其一，FP32 与 FP16 的 MPJPE 完全一致，而 FP16 延迟仅为 FP32 的约 56\%，说明本任务在端侧采用 FP16 不会带来可观测精度损失。其二，激进 INT8 虽取得最高加速比（1.71$\times$），但 MPJPE 增量达到 $+13.4\,\text{mm}$，说明对高敏感激活继续量化会显著破坏跨视图匹配与坐标回归精度。其三，本文混合精度以 72.3\,ms 的延迟实现 1.60$\times$ 加速，同时仅带来 $+2.2\,\text{mm}$ 的 MPJPE 增量，表明主要收益已由主体卷积层的低风险量化获得，而关键保护层有效抑制了额外精度损失。综合而言，本文方案保留了激进 INT8 的主要加速收益，同时显著抑制了精度退化，因此在目标平台上表现出更优的精度--效率折中。需要说明的是，这里的对比对象限定为同一网络在不同精度配置下的部署表现，其目标是验证本文平台内量化决策框架的有效性，而非宣称对所有移动端姿态估计量化方案的绝对优越性。
 
 \subsubsection{消融实验：精度敏感层的必要性验证}
 
@@ -1680,7 +1719,7 @@ INT8 量化覆盖左/右骨干全部卷积权重及 EFEM 投影/聚合卷积权�
 \begin{table}[htbp]
   \centering
   \small
-  \caption{精度敏感层消融实验——将各保护层替换为 INT8 的精度代价（RT-Pose 验证集）}
+\caption{精度敏感层消融实验}
   \label{tab:ablation_quant}
   \begin{tabular}{lccc}
     \toprule
@@ -1704,7 +1743,7 @@ INT8 量化覆盖左/右骨干全部卷积权重及 EFEM 投影/聚合卷积权�
 \begin{table}[htbp]
   \centering
   \small
-  \caption{量化前后多人场景端到端延迟对比（Xiaomi\,14/MNN/4线程，单位：ms）}
+\caption{量化前后多人场景延迟对比}
   \label{tab:multiperson_latency_quant}
   \begin{tabular}{cccc}
     \toprule
@@ -1728,382 +1767,10 @@ INT8 量化覆盖左/右骨干全部卷积权重及 EFEM 投影/聚合卷积权�
 
 第一，端到端时延的主要瓶颈集中在双分支骨干卷积，而 EFEM gather 虽计算量有限，却因不规则访存成为额外热点。Roofline 分析进一步表明，骨干主要受算力约束，EFEM 投影、头部卷积与 gather 更接近带宽约束，因此 INT8 在本文模型上的收益来源同时包含算力侧加速与访存侧压缩。
 
-第二，量化风险在网络中呈明显非均匀分布。骨干权重与 EFEM 投影权重属于低风险高收益量化对象，而 EFEM 注意力分数、热力图/置信度输出以及 DWT 求解器直接影响匹配分布与几何求解稳定性，应作为保护层保留 FP32。基于这一结论，本文形成了“主体权重量化、关键激活与求解路径保护”的分层混合精度方案。
+第二，量化风险在网络中呈明显非均匀分布。骨干权重与 EFEM 投影权重属于低风险高收益量化对象，而 EFEM gather/correlation、EFEM 注意力分数、热力图/置信度输出以及 DWT 求解器直接影响访存瓶颈收益实现、匹配分布与几何求解稳定性，应作为保护层保留 FP32。基于这一结论，本文形成了“瓶颈定位 + 敏感性筛查 + 分层混合精度设计”的硬件感知量化方法链。
 
 第三，实验结果验证了该方案在目标平台上的有效性。本文混合精度方案以 $+2.2\,\text{mm}$ 的 MPJPE 代价实现 1.60$\times$ 推理加速，并将模型体积由 23.4\,MB 压缩至 15.2\,MB；相较于激进 INT8，保留了主要加速收益，同时显著降低了精度退化。多人场景实验进一步表明，量化后模型仍保持与第三章基线一致的时延增长规律。
 
-因此，本章的贡献不在于给出某一组固定平台参数下的经验配置，而在于提出了一套面向目标平台重新标定量化范围的方法流程。上述结论针对 Snapdragon 8 Gen3 CPU 与 MNN 推理后端这一特定执行环境成立；迁移到其他 SoC、GPU/NPU 后端或不同推理框架时，仍需结合目标平台重新进行性能建模与敏感性分析，但“瓶颈定位 + 敏感性筛查 + 分层混合精度设计”的分析路径具有可复用性。
+因此，本章的贡献不在于给出某一组固定平台参数下的经验配置，而在于形成了一套可迁移的硬件感知量化分析路径：先定位瓶颈，再识别敏感层，最后设计分层混合精度与 PTQ 校准流程。上述结论针对 Snapdragon 8 Gen3 CPU 与 MNN 推理后端这一特定执行环境成立；当迁移到其他 SoC、GPU/NPU 后端或不同推理框架时，仍需结合目标平台重新标定瓶颈位置与敏感层集合，但本文给出的“瓶颈定位 + 敏感性筛查 + 分层混合精度设计”方法链具有可复用的方法论价值。
 
-\section{总结与展望}
-\subsection{总结}
-\subsection{展望}
-\section{图像布局}
-
-
-\subsection{单图布局}
-
-
-
-单图布局如图\ref{F.csu_single所示。}
-
-\begin{figure}[hbt]
-\centering
-\includegraphics[width=0.5\textwidth]{csu.png}
-\caption{单图布局示例}
-\label{F.csu_single}
-\end{figure}
-
-\subsection{横排布局}
-
-横排布局如图\ref{F.csu_row所示。}
-
-\begin{figure}[!htb]
-    \centering
-    \begin{subfigure}[t]{0.24\linewidth}
-    	\captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png}
-         \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \begin{subfigure}[t]{0.24\linewidth}
-    \captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \begin{subfigure}[t]{0.24\linewidth}
-    	\captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \begin{subfigure}[t]{0.24\linewidth}
-    	\captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \caption{横排布局示例}
-    \label{F.csu_row}
-\end{figure}
-
-
-
-\subsection{竖排布局}
-竖排布局如图\ref{F.csu_col所示。}
-
-\begin{figure}[!htb]
-    \centering
-    \begin{subfigure}[t]{0.15\linewidth}
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}\\
-    \begin{subfigure}[t]{0.15\linewidth}
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \caption{竖排布局示例}
-    \label{F.csu_col}
-\end{figure}
-
-
-
-\subsubsection{竖排多图横排布局}
-
-\begin{figure}[!htb]
-    \centering
-    \begin{subfigure}[t]{0.13\linewidth}
-    	\captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png} \vspace{-1ex} \vfill
-        \includegraphics[width=1\linewidth]{csu.png}
-         \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \begin{subfigure}[t]{0.13\linewidth}
-    	\captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=1\linewidth]{csu.png} \vspace{-1ex} \vfill
-        \includegraphics[width=1\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \caption{竖排多图横排布局}
-    \label{F.csu_col_row}
-\end{figure}
-
-竖排多图横排布局如图\ref{F.csu_col_row所示。注意看(a)、(b)编号与图关系。}
-
-
-\subsubsection{横排多图竖排布局}
-
-
-
-\begin{figure}[!htb]
-    \centering
-    \begin{subfigure}[t]{0.3\linewidth}
-    	\captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=0.45\linewidth]{csu.png}
-        \includegraphics[width=0.45\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}\\
-    \begin{subfigure}[t]{0.3\linewidth}
-    	\captionsetup{justification=centering} %子图caption居中
-        \begin{minipage}[b]{1\linewidth}
-        \includegraphics[width=0.45\linewidth]{csu.png}
-        \includegraphics[width=0.45\linewidth]{csu.png}
-        \caption{}
-        \end{minipage}
-    \end{subfigure}
-    \caption{横排多图竖排布局，斜体emph \emph{A}，A，斜体texit \textit{A}}
-    \label{F.csu_row_col}
-\end{figure}
-
-横排多图竖排布局如图\ref{F.csu_row_col所示。注意看(a)、(b)编号与图关系。}
-
-\subsection{本章小结}
-本章示例图片布局。
-
-\clearpage
-
-
-\section{表格插入示例}
-
-\begin{table}[htb]
-  \centering
-  \caption{表格为三线表斜体emph \emph{A}，A，斜体texit \textit{A}}
-  \label{T.example}
-  \begin{tabular}{llllll}
-  \toprule
-    & \emph{A}A \textit{A}  & B  & C  & D  & E \\
-  \midrule
-1 	& 212 & 414 & 4 		& 23 & fgw	\\
-2 	& 212 & 414 & v 		& 23 & fgw	\\
-3 	& 212 & 414 & vfwe		& 23 & 嗯	\\
-4 	& 212 & 414 & 4fwe		& 23 & 嗯	\\
-5 	& af2 & 4vx & 4 		& 23 & fgw	\\
-6 	& af2 & 4vx & 4 		& 23 & fgw	\\
-7 	& 212 & 414 & 4 		& 23 & fgw	\\
-\bottomrule
-
-\end{tabular}
-\end{table}
-
-表格如表\ref{T.example所示，latex表格技巧很多，这里不再详细介绍。}
-
-
-
-\clearpage
-
-\section{算法示例}
-
-
-\begin{algorithm}  
-	\caption{Fourier-Mellin Based KCF}  
-	\label{alg:A}  
-	\hspace*{0.02in}{\bf Input:}
-	Image $I$\\preprocessed kernelized template $T_\kappa$\\
-	\hspace*{0.02in}{\bf Output:} 
-	scale $\sigma$, angle $\theta$ relation between $I$ and $T$ 
-	
-	\begin{algorithmic}[1] 
-		\STATE{fourier transform: $F=\mathcal{F}(I)$}
-		\STATE {high pass filter: $F_h=\mathcal{H}(F)$\\$\mathcal{H}(x,y)=(1.0-cos(\pi x)cos(\pi y))(2.0-cos(\pi x)cos(\pi y))$}
-		\STATE {log-polar transform: $F_{lp}=\mathcal{L}(F_h)$}
-		\STATE {apply kernel function: $F_\kappa=\mathcal{K}(F_{lp})$}
-		\STATE {phase correlation: $(\Delta x, \Delta y)=\mathcal{C}(F_\kappa, T_\kappa)$}
-		\STATE {resolove scale and rotation:\\
-			$\theta=\alpha \Delta x$, $\sigma=log(\Delta y)$\\
-			where $\alpha$ is translation factor of pixel translation on fourier domain and polar angle on origin image
-		}
-	\end{algorithmic}  
-\end{algorithm}
-
-
-  \begin{algorithm}
-	\caption{算法示例}
-	\label{alg:SPSH01}
-	\renewcommand{\algorithmicrequire}{Input:}
-	\renewcommand{\algorithmicensure}{Output:}
-	
-	\begin{algorithmic}[1]
-		\REQUIRE 相关输入。。。。
-		
-		\ENSURE 相关输出。。。
-		
-		\STATE 算法描述  % 只占用一个行号
-		\FOR{$i \gets 1\cdots N$}
-		\STATE 算法描述
-		\FOR{each $j \gets 1\cdots K$}
-		\STATE 算法描述
-		\ENDFOR
-		\ENDFOR
-		\REPEAT
-		\REPEAT
-		\STATE 令$\tau\gets\tau+1$
-		\UNTIL 内循环迭代终止条件
-		\STATE 。。。
-		\UNTIL 外循环迭代终止条件
-	\end{algorithmic}
-\end{algorithm}
-
-如算法\ref{alg:A所示，latex算法技巧很多。按需调整，这里不再详细介绍。}
-
-\clearpage
-
-\section{公式、定理、证明插入示例}
-
-\begin{flalign}
-\text{P1: } &\min_{\eta,R_u>0,R_d>0}\big\{ T_{\text{latency}}(\eta,R_u,R_d)\big\}  \\
-&\text{s.t. }   0 \leq \eta \leq 1 \label{P1C1} 
-\end{flalign}
-
-公式插入示例如公式(\ref{E.example)所示。}
-
-\begin{equation}
-\gamma_{x}=
-\left\{
-  \begin{array}{lr}
-  0, & {\rm if}~~\;|x| \leq \delta \\
-  x, & {\rm otherwise}
-  \end{array}
-\right.
-\label{E.example}
-\end{equation}
-
-\begin{flalign}
-&\text{P1:} \max_{\bigg\{\substack{P_{m,i},P_{n,i}\\
-		q_{m,i},q_{n,i}\\ \forall n,m,i}\bigg\}}\big[R_{\text{sum}}(P_{m,i},P_{n,i},q_{m,i},q_{n,i},\forall n,m,i)\big],  \\
-& \text{s.t.}~~q_{m,i}\in(0,1), q_{n,i}\in(0,1), \forall n,m,i, \label{allocons1} \\
-& \hspace{1.5em} ~0\leq \sum_{i=1}^Rq_{n,i}P_{n,i}\leq P_n^{sum}, \forall n, \label{powercons1}  \\ 
-& \hspace{1.5em} ~0\leq \sum_{i=1}^Rq_{m,i}P_{m,i}\leq P_m^{sum}, \forall m, \label{powercons2} \\ 
-& \hspace{1.5em} ~\sum_{i=1}^Rq_{n,i}\leq 1,\sum_{i=1}^Rq_{m,i}\leq 1,\forall m,n, \label{RBcons} \\ 
-& \hspace{1.5em} ~\sum_{n=1}^Nq_{n,i}\leq 1,\sum_{m=1}^Mq_{m,i}\leq 1,\forall i, \label{RBcons2} \\
-& \hspace{1.5em} ~C_{m,BS,i}(P_{m,i},q_{m,i})\geq\varepsilon_{m,i},\forall m, \label{capcons}
-\end{flalign}
-
-
-  %%%%%%%%%%%%%% 示例 %%%%%%%%%%%%%%%%
-公式子编号示例：
-\begin{subequations}\label{Eq.(3-4)}
-	\renewcommand{\theequation}{\theparentequation-\alph{equation}} % 定义编号方式
-	\begin{align}
-		&\varphi_{n,t}\in\left\{0,1\right\}, \forall n\in\mathcal{N}, t\in\mathcal{N}_{\mathrm{t}}, \label{Eq.(3-4a)} \\
-		&\varphi_{n,t}\in\left\{0,1\right\}, \forall n\in\mathcal{N}, t\in\mathcal{N}_{\mathrm{t}}, \label{Eq.(3-4b)} \\
-		&\varphi_{n,t}\in\left\{0,1\right\}, \forall n\in\mathcal{N}, t\in\mathcal{N}_{\mathrm{t}}, \label{Eq.(3-4c)}
-	\end{align}
-\end{subequations}
-
-其中，公式\ref{Eq.(3-4a)}表示。
-
-\begin{equation}    
-	H_{j}= \mathrm{Concat}(\mathrm{GAP}({F}_{j}),\mathrm{GMP}({F}_{j})),
-\end{equation}
-\begin{equation}    
-	\tilde{H}_{j-1,j}= \mathrm{Concat}(H_{j-1},H_{j}),j=5,
-\end{equation}
-\begin{equation}    
-	p_c^{(i)}=\mathrm{Softmax}(\boldsymbol{P}_\theta(\tilde{H}_{j-1,j})),
-\end{equation}
-
-  %%%%%%%%%% 示例 %%%%%%%%%%%5
-定理和证明环境说明：如”定理”使用小四黑体，编号随章节变化重新编号（如定理4-1），定理内容使用小四宋体，且内容行距与正文一致；”证明”无需编号，且以黑色小方块结尾。
-
-\begin{theorem}\label{theorem1}
-	\setlength{\baselineskip}{20pt}         % 基准行间距
-	\renewcommand{\baselinestretch}{1.0}   % 几倍行间距
-	开始定理。。。
-\end{theorem}
-
-\begin{proof*} %% 证明不编号
-	\setlength{\baselineskip}{20pt}         % 基准行间距
-	\renewcommand{\baselinestretch}{1.0}   % 几倍行间距
-	开始证明。。。
-	$\hfill\blacksquare$ %% 以黑方块结尾
-\end{proof*}
-
-\clearpage
-
-\section{参考文献插入示例}
-
-% LaTeX\cite{lamport1994latex}插入参考文献最方便的方式是使用bibliography\cite{pritchard1969statistical}，大多数出版商的论文页面都会有导出bib格式参考文献的链接，建议使用Jabref管理参考文献，把每个文献的bib放入``thesis-references''，然后用bibkey即可插入参考文献。
-
-% 中文文献\cite{zh-book-1}，注意手动编辑bibkey为英文的即可。
-
-% 可以将文献标注为右上角\citess{shiweisong2019},只需要在现有的cite后加“ss”即可。
-
-% 英文会议\cite{Kraus2021Current}, \cite{WuYangLuEtAl2021}.
-
-% 英文期刊\cite{LuoZengYuanEtAl2016}, \cite{Wu2022Boosting}.
-
-
-% 特别强调：从Google下载的bib也不一定全是对的，如发现有信息缺失，请下载原文核对。比如已发表的期刊，要包保证年、卷、标。
-
-% 注意：如发现替换后的参考文献没有更新，请删除主文件夹下xxx.bbl文件，重新编译即可。
-
-\clearpage
-
-
-\section{总结与展望}
-
-\noindent{纯数字编号}
-\begin{enumerate}
- \item XXXXXXXXXX
- \label{item1}
- \item XXXXXXXXXX
- \item XXXXXXXXXX
-\end{enumerate}
-罗马编号
-\begin{enumerate}[label=(\roman*)]
- \item XXXXXXXXXX
- \label{item2}
- \item XXXXXXXXXX
- \item XXXXXXXXXX
-\end{enumerate}
-括号编号
-\begin{enumerate}[label=(\arabic*)]
- \item XXXXXXXXXX
- \label{item3}
- \item XXXXXXXXXX
- \item XXXXXXXXXX
-\end{enumerate}
-半括号编号
-\begin{enumerate}[label=\arabic*)]
- \item XXXXXXXXXX
- \label{item4}
- \item XXXXXXXXXX
- \item XXXXXXXXXX
-\end{enumerate}
-小字母编号
-\begin{enumerate}[label=\alph*)]
- \item XXXXXXXXXX
- \label{item5}
- \item XXXXXXXXXX
- \item XXXXXXXXXX
-\end{enumerate}
-
-引用测试,正如\ref{item1}、\ref{item2}、\ref{item3}、\ref{item4}、\ref{item5}所示
-
-\subsection{工作展望}
-手动编号 %（不推荐,无法被交叉引用）
-\par
-本课题针对XX，鉴于XXX，对XX进行了提高，但是XXX，所以有如下XX：
-
-（1）目前XX虽然XX，但是XX仍然XX，所以XX仍然是一个值得XX的问题。
-
-（2）随着XX，XX具有XX的问题，仍值得进一步XX。
-
-（3）本课题在XX有了XX，但是XX的XX还存在XX，所以XX。
-
-
-\clearpage
+% \input{content/format_examples.tex}

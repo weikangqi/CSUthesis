@@ -1,197 +1,173 @@
 """
-生成骁龙 8 Gen3 CPU Roofline 示意图（含实测工作点）
-
-用于论文第四章"Roofline 分析"小节的配图。
+骁龙 8 Gen3 CPU Roofline 图（彻底解决标注重叠）
 输出：images/roofline.pdf
-
-运行方式：
-  python tools/figures/plot_roofline.py
-
-说明：
-  理论可达点（空心）= min(算力上限, 带宽 × AI)，即 Roofline 上的点。
-  实测工作点（实心）= profile.py 比例时延 × 模块 FLOPs 估算所得实际 GFLOPS。
-  实测值来源：以第三章 FP16 基线（116ms，13.93 GFLOP）按各模块时延比例推算；
-  EFEM gather 使用访存分析法（访问字节数 / 实测时延）独立估算。
 """
-
 from pathlib import Path
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
 import numpy as np
 
-# ── 中文字体（Windows）──────────────────────────────────────────
-plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams.update({
+    'font.family':        'SimHei',
+    'axes.unicode_minus': False,
+    'font.size':          50,
+})
 
-# ── 平台参数（骁龙 8 Gen3 / NEON FP16 / 4 线程）────────────────
-COMPUTE_PEAK = 100.0   # GFLOPS（FP16 有效峰值，含 ~75-80% 指令效率）
-BANDWIDTH    = 40.0    # GB/s（LPDDR5X 有效带宽）
-RIDGE        = COMPUTE_PEAK / BANDWIDTH   # 2.5 FLOP/byte
+PEAK  = 100.0
+BW    = 40.0
+RIDGE = PEAK / BW   # 2.5
 
-# ── 各模块数据 ──────────────────────────────────────────────────
-# (显示名, AI FLOP/byte, 颜色, 标记, 实测GFLOPS)
-# 实测 GFLOPS 推算依据：
-#   骨干 (compute-bound): FLOPs(按13.93G总量×比例) / 时延(116ms×比例) ≈ 83-85% 算力
-#   EFEM projection / heads: 中等 AI，实测约 40-50% 算力
-#   EFEM gather (AI=0.04): 访存字节 ~7 MB，实测耗时 ~5.8ms → 0.53 GFLOPS，约 33% 带宽效率
+# ── 各模块（名, AI, 颜色, 标记, 实测GFLOPS）──────────────────────────────
 MODULES = [
-    # name, AI, color, marker, measured_gflops
-    ('骨干\nstride=32',          280.0,  '#1A73E8', 'o',  72.0),
-    ('骨干\nstride=16',          784.0,  '#1558B0', 's',  80.0),
-    ('骨干\nstride=8',           923.0,  '#0D3F7A', '^',  83.0),
-    ('EFEM 投影\n(1×1 Conv)',     11.3,   '#E65100', 'D',  44.0),
-    ('预测头\n(1×1 Conv)',        15.7,   '#F4511E', 'P',  50.0),
-    ('EFEM gather\n(视差相关)',    0.04,   '#B71C1C', 'X',   0.53),
+    ('EFEM gather',   0.04,  '#B71C1C', 'X',  0.53),
+    ('EFEM 投影',     11.3,  '#E87722', 'D', 44.0),
+    ('预测头',        15.7,  '#F4B942', 'P', 50.0),
+    ('骨干 P5',      280.0,  '#5B9BD5', 'o', 72.0),
+    ('骨干 P4',      784.0,  '#2878B5', 's', 80.0),
+    ('骨干 P3',      923.0,  '#1B4F8A', '^', 83.0),
 ]
 
+# ── 画布 ─────────────────────────────────────────────────────────────────
+fig, ax = plt.subplots(figsize=(30.0, 20.0))
+fig.patch.set_facecolor('white')
+ax.set_facecolor('white')
 
-def attainable(ai: float) -> float:
-    """理论可达性能 = min(算力上限, 带宽 × AI)"""
-    return min(COMPUTE_PEAK, BANDWIDTH * ai)
+# ── 屋顶线 ────────────────────────────────────────────────────────────────
+xi = np.logspace(-2.5, 4.0, 2000)
+yi = np.minimum(PEAK, BW * xi)
+ax.plot(xi, yi, color='#111', lw=3.0, zorder=5)
 
+ax.axvline(x=RIDGE, color='#9E9E9E', ls='--', lw=1.2, alpha=0.8, zorder=4)
+ax.axvspan(0.003, RIDGE, alpha=0.05, color='#F44336', zorder=1)
+ax.axvspan(RIDGE, 12000, alpha=0.05, color='#1565C0', zorder=1)
 
-# ── 绘图 ──────────────────────────────────────────────────────
-fig, ax = plt.subplots(figsize=(7.8, 5.2))
-
-# 屋顶线
-xi = np.logspace(-2.5, 4.5, 1000)
-yi = np.minimum(COMPUTE_PEAK, BANDWIDTH * xi)
-ax.plot(xi, yi, color='#212121', lw=2.2, zorder=3, label='Roofline（理论上限）')
-
-# 垂直分界线
-ax.axvline(x=RIDGE, color='#757575', linestyle='--', lw=1.0, alpha=0.8)
-
-# 区域背景
-ax.axvspan(0.003, RIDGE, alpha=0.04, color='#F44336')
-ax.axvspan(RIDGE, 6000,  alpha=0.04, color='#1565C0')
+# 区域标签 — 顶部
+ax.text(0.0043, 1100, '访存密集区', fontsize=50, color='#C62828',
+        ha='left', style='italic', va='top')
+ax.text(3.5, 1100, '计算密集区', fontsize=50, color='#0D47A1',
+        ha='left', style='italic', va='top')
 
 # 屋脊点
-ax.plot(RIDGE, COMPUTE_PEAK, 'ko', ms=6, zorder=5)
+ax.plot(RIDGE, PEAK, 'k.', ms=14, zorder=9)
 ax.annotate(
-    f'屋脊点 ({RIDGE:.1f}, {COMPUTE_PEAK:.0f})\n'
+    f'屋脊点 ({RIDGE:.1f}, {PEAK:.0f})\n'
     r'$= P_\mathrm{peak}\,/\,B_\mathrm{eff}$',
-    xy=(RIDGE, COMPUTE_PEAK),
-    xytext=(RIDGE * 4, COMPUTE_PEAK * 0.32),
-    arrowprops=dict(arrowstyle='->', lw=1.2, color='#424242'),
-    fontsize=8.5, ha='left', va='center', color='#212121',
+    xy=(RIDGE, PEAK),
+    xytext=(0.35, 50),
+    fontsize=50, ha='left', va='top', color='#212121', zorder=10,
+    arrowprops=dict(arrowstyle='->', lw=1.4, color='#555',
+                    connectionstyle='arc3,rad=0.25'),
+    bbox=dict(boxstyle='round,pad=0.3', fc='white', ec='#ccc',
+              alpha=0.9, lw=0.8),
 )
 
-# 区域文字
-ax.text(0.0045, COMPUTE_PEAK * 1.18, '访存密集区',
-        fontsize=9, color='#C62828', ha='left', style='italic')
-ax.text(RIDGE * 2.0, COMPUTE_PEAK * 1.18, '计算密集区',
-        fontsize=9, color='#0D47A1', ha='left', style='italic')
+# ── 画点 ─────────────────────────────────────────────────────────────────
+for _, ai, color, mk, meas in MODULES:
+    y_th = min(PEAK, BW * ai)
+    ax.scatter(ai, y_th,  color='none', marker=mk, s=600, zorder=7,
+               edgecolors=color, linewidths=3.0)
+    ax.scatter(ai, meas,  color=color,  marker=mk, s=500, zorder=8,
+               edgecolors='white', linewidths=1.5)
+    if abs(y_th - meas) / y_th > 0.05:
+        ax.plot([ai, ai], [meas, y_th], color=color, lw=1.2,
+                ls=':', alpha=0.6, zorder=4)
 
-# ── 空心点：理论可达位置（ON roofline）────────────────────────
-for name, ai, color, marker, _ in MODULES:
-    y_theory = attainable(ai)
-    ax.scatter(ai, y_theory,
-               color='none', marker=marker, s=90, zorder=6,
-               edgecolors=color, linewidths=1.5)
+# ── 标注函数 ──────────────────────────────────────────────────────────────
+def ann(pt_xy, txt_xy, label, eff, color, ha, va, rad=0.0):
+    cs = f'arc3,rad={rad}'
+    ax.annotate(f'{label}  {eff}',
+        xy=pt_xy, xytext=txt_xy,
+        fontsize=50, color=color, ha=ha, va=va, zorder=11,
+        arrowprops=dict(arrowstyle='->', color=color, lw=1.5,
+                        connectionstyle=cs, shrinkB=6),
+    )
 
-# ── 实心点：实测工作点（BELOW roofline）──────────────────────
-for name, ai, color, marker, measured in MODULES:
-    ax.scatter(ai, measured,
-               color=color, marker=marker, s=80, zorder=7,
-               edgecolors='white', linewidths=0.6)
+# ── 标注布局（分散到四个象限）────────────────────────────────────────────
+#
+#  左下区  y < 5  ：EFEM gather, 带宽
+#  左中区  y 15-200：预测头, 屋脊点, EFEM 投影
+#  左上区  y 650-1000：骨干 P5
+#  右中区  y 300-600：骨干 P4, 骨干 P3
+#
 
-    # 用虚线连接理论点和实测点（显示效率差距）
-    y_theory = attainable(ai)
-    if abs(y_theory - measured) / y_theory > 0.05:  # 差距 > 5% 才画
-        ax.plot([ai, ai], [measured, y_theory],
-                color=color, lw=0.8, linestyle=':', alpha=0.6, zorder=4)
+# EFEM gather：移到左侧，文字贴左边框
+ann((0.04, 0.53),  (0.004, 0.8),
+    'EFEM gather (视差相关)', '33%带宽',
+    '#B71C1C', 'left', 'bottom', rad=0.0)
 
-# ── 标注（仅实测点旁标文字）─────────────────────────────────
-# 计算密集区各模块：实测点在 72-83 GFLOPS，错开标注
-label_offsets = {
-    '骨干\nstride=32':       (-38, -30, 'right'),
-    '骨干\nstride=16':       (  0, -48, 'center'),
-    '骨干\nstride=8':        ( 38, -30, 'left'),
-    'EFEM 投影\n(1×1 Conv)': (-28,  12, 'right'),
-    '预测头\n(1×1 Conv)':    ( 28,  12, 'left'),
-}
+# 预测头：左侧低位
+ann((15.7, 50.0),  (0.004, 18),
+    '预测头 (1×1 Conv)', '50%',
+    '#F4B942', 'left', 'bottom', rad=-0.15)
 
-for name, ai, color, marker, measured in MODULES:
-    if ai < RIDGE:
-        # EFEM gather：在左侧，标注放右侧
-        ax.annotate(
-            name,
-            xy=(ai, measured),
-            xytext=(ai * 10, measured * 0.1),
-            arrowprops=dict(arrowstyle='->', color=color, lw=1.1),
-            fontsize=8.5, color=color, ha='left', va='center',
-        )
-        # 标注效率
-        eff = measured / attainable(ai) * 100
-        ax.text(ai * 10, measured * 0.1 * 0.28,
-                f'{eff:.0f}% 带宽效率', fontsize=7.5, color=color, ha='left')
-    else:
-        dx, dy, ha = label_offsets.get(name, (0, 15, 'center'))
-        ax.annotate(
-            name,
-            xy=(ai, measured),
-            xytext=(dx, dy),
-            textcoords='offset points',
-            arrowprops=dict(arrowstyle='->', color=color, lw=0.8,
-                            shrinkA=0, shrinkB=3),
-            fontsize=8, color=color, ha=ha, va='top' if dy < 0 else 'bottom',
-        )
-        # 标注效率
-        eff = measured / COMPUTE_PEAK * 100
-        ax.annotate(
-            f'{eff:.0f}%',
-            xy=(ai, measured),
-            xytext=(dx, dy - 14 if dy < 0 else dy + 14),
-            textcoords='offset points',
-            fontsize=7, color=color, ha=ha, style='italic',
-        )
+# EFEM 投影：左侧中位（屋脊点下方）
+ann((11.3, 44.0),  (0.004, 110),
+    'EFEM 投影 (1×1 Conv)', '44%',
+    '#E87722', 'left', 'bottom', rad=0.12)
 
-# ── 轴与样式 ──────────────────────────────────────────────────
+# 骨干 P5：Roofline 水平段下方，偏左
+ann((280, 72.0),   (50, 62),
+    '骨干 P5 (stride=32)', '72%',
+    '#5B9BD5', 'left', 'top', rad=0.18)
+
+# 骨干 P4：Roofline 水平段下方，偏右
+ann((784, 80.0),   (6500, 32),
+    '骨干 P4 (stride=16)', '80%',
+    '#2878B5', 'right', 'top', rad=-0.20)
+
+# 骨干 P3：右对齐，中下（P4 下方留足间距）
+ann((923, 83.0),   (6500, 310),
+    '骨干 P3 (stride=8)', '83%',
+    '#1B4F8A', 'right', 'top', rad=-0.15)
+
+# ── 轴 ───────────────────────────────────────────────────────────────────
 ax.set_xscale('log')
 ax.set_yscale('log')
+ax.set_xlim(0.003, 8000)
+ax.set_ylim(0.18, 1200)
 
-ax.set_xlim(0.003, 4000)
-ax.set_ylim(0.05, 800)
+ax.set_xlabel('算术强度  (FLOP/byte)', fontsize=50, labelpad=8)
+ax.set_ylabel('性能  (GFLOPS)',        fontsize=50, labelpad=8)
+ax.set_title('骁龙 8 Gen3 CPU  Roofline 模型  (FP16, 4 线程, batch = 1)',
+             fontsize=50, fontweight='bold', pad=14)
 
-ax.set_xlabel('算术强度  (FLOP/byte)', fontsize=11)
-ax.set_ylabel('性能  (GFLOPS)',         fontsize=11)
-ax.set_title('骁龙 8 Gen3 CPU Roofline 模型  (FP16, 4 线程, batch = 1)',
-             fontsize=11, pad=8)
+ax.grid(True, which='major', ls='--', alpha=0.22, lw=0.9, color='#777')
+ax.grid(True, which='minor', ls=':',  alpha=0.10, lw=0.6, color='#aaa')
 
-ax.grid(True, which='major', linestyle='--', alpha=0.3, lw=0.8)
-ax.grid(True, which='minor', linestyle=':',  alpha=0.15, lw=0.5)
+for sp in ax.spines.values():
+    sp.set_visible(True)
+    sp.set_edgecolor('#333')
+    sp.set_linewidth(1.1)
+ax.tick_params(which='both', direction='in', top=True, right=True,
+               length=6, width=1.0)
 
-# ── 图例 ──────────────────────────────────────────────────────
-from matplotlib.lines import Line2D
-legend_handles = [
-    Line2D([0], [0], color='#212121', lw=2, label='Roofline 理论上限'),
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='none',
-           markeredgecolor='#555', markersize=8, lw=0,
-           label='理论可达点（ON Roofline）'),
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='#555',
-           markersize=8, lw=0,
-           label='实测工作点（比例估算）'),
-    mpatches.Patch(color='#1A73E8', alpha=0.8, label='骨干卷积'),
-    mpatches.Patch(color='#E65100', alpha=0.8, label='EFEM 投影 / 预测头'),
-    mpatches.Patch(color='#B71C1C', alpha=0.8, label='EFEM gather'),
+# 峰值标注
+ax.text(4.5, PEAK * 1.06, f'{PEAK:.0f} GFLOPS 算力峰值',
+        fontsize=50, ha='left', va='bottom', color='#555')
+# 带宽标注
+ax.text(0.007, 2.5, f'{BW:.0f} GB/s 带宽',
+        fontsize=50, ha='left', color='#555', rotation=42)
+
+# ── 图例 ─────────────────────────────────────────────────────────────────
+handles = [
+    Line2D([0],[0], color='#111', lw=2.8, label='Roofline 理论上限'),
+    Line2D([0],[0], marker='o', color='w', markerfacecolor='none',
+           markeredgecolor='#555', ms=32, lw=0, label='理论可达点（ON Roofline）'),
+    Line2D([0],[0], marker='o', color='w', markerfacecolor='#555',
+           ms=32, lw=0, label='实测工作点'),
+    mpatches.Patch(color='#2878B5', label='骨干卷积（P3/P4/P5）'),
+    mpatches.Patch(color='#E87722', label='EFEM 投影 / 预测头'),
+    mpatches.Patch(color='#B71C1C', label='EFEM gather'),
 ]
-ax.legend(handles=legend_handles, fontsize=8.0, loc='lower right',
-          framealpha=0.92, edgecolor='#BDBDBD', ncol=1)
+leg = ax.legend(handles=handles, fontsize=50, loc='lower right',
+                framealpha=0.96, edgecolor='#BDBDBD', fancybox=False)
+leg.get_frame().set_linewidth(1.0)
 
-# 峰值线标注
-ax.text(3800, COMPUTE_PEAK * 1.06,
-        f'{COMPUTE_PEAK:.0f} GFLOPS', fontsize=8, ha='right', color='#424242')
-ax.text(3800, BANDWIDTH * 3800 * 0.72,
-        f'{BANDWIDTH:.0f} GB/s 带宽', fontsize=8, ha='right', color='#424242',
-        rotation=34)
-
-plt.tight_layout(pad=1.2)
+fig.subplots_adjust(left=0.10, right=0.97, top=0.91, bottom=0.09)
 
 out = Path(__file__).parent.parent.parent / 'images' / 'roofline.pdf'
-out.parent.mkdir(parents=True, exist_ok=True)
-plt.savefig(str(out), format='pdf', bbox_inches='tight', dpi=200)
+plt.savefig(str(out), format='pdf', bbox_inches='tight')
 print(f'已生成: {out}')

@@ -171,8 +171,8 @@ make
 make pvc
 ```
 或者
-请使用`xelatex`，对`csuthesis_main.tex`文件进行编译。
-Windows下可以使用`TexMaker`,`TexStudio`等IDE，选中`xelatex`编译器进行编译。
+请使用`latexmk -xelatex csuthesis_main.tex`进行编译，模板已默认将 PDF 和中间产物输出到`build/`目录。
+Windows下可以使用`TexMaker`,`TexStudio`等IDE，选中`xelatex`编译器进行编译，并将输出目录设置为`build`。
 使用高级文本编辑器，如sublime等，否则可能因为ANSI、UTF-8等编码格式问题编译失败。
 
 本模板同时已经在macOS（10.14 & 12.3.1）进行正常运行。
