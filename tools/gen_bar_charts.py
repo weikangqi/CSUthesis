@@ -53,7 +53,7 @@ percents = [66.1, 16.7,  8.6,  6.0, 0.9]
 # 蓝色主色 + 渐变层次
 palette = ['#173B73', '#255FA8', '#4B88C7', '#86B3DD', '#C9DDF0']
 
-fig, ax = plt.subplots(figsize=(12.2, 6.9))
+fig, ax = plt.subplots(figsize=(13.8, 7.8))
 fig.patch.set_facecolor('white')
 ax.set_facecolor('#F7F9FC')
 
@@ -71,7 +71,7 @@ close_frame(ax)
 ax.text(
     92.0, 3.55, '骨干合计占比 82.8%',
     ha='right', va='center',
-    fontsize=15.2, color='#173B73', fontweight='bold',
+    fontsize=16.8, color='#173B73', fontweight='bold',
     bbox=dict(boxstyle='round,pad=0.30', facecolor='#E8F0FA', edgecolor='#B7C8DE')
 )
 
@@ -83,30 +83,30 @@ for bar, pct, val in zip(bars, percents, values):
         x_pct = max(w - 2.2, w * 0.72)
         ax.text(
             x_pct, y_c, f'{pct:.1f}%',
-            va='center', ha='right', fontsize=15.0,
+            va='center', ha='right', fontsize=16.6,
             color='white', fontweight='bold',
             bbox=dict(boxstyle='round,pad=0.22', facecolor='#12345E', edgecolor='none', alpha=0.92)
         )
     ax.text(
         w + 1.0, y_c, f'{val:.1f} ms',
-        va='center', ha='left', fontsize=16.0, color='#1F2430', fontweight='bold'
+        va='center', ha='left', fontsize=17.8, color='#1F2430', fontweight='bold'
     )
 
 ax.set_yticks(y_pos)
-ax.set_yticklabels(labels, fontsize=17.2, linespacing=1.35)
+ax.set_yticklabels(labels, fontsize=19.6, linespacing=1.38)
 ax.invert_yaxis()
-ax.set_xlabel('延迟 (ms)', fontsize=18.2, labelpad=8)
+ax.set_xlabel('延迟 (ms)', fontsize=19.6, labelpad=8)
 ax.set_xlim(0, 95)
 ax.xaxis.set_major_locator(mticker.MultipleLocator(20))
 ax.xaxis.set_minor_locator(mticker.MultipleLocator(10))
 ax.tick_params(which='both', direction='in', top=False, right=False,
-               length=4, width=0.9, color='#555', labelsize=16.8)
+               length=4, width=0.9, color='#555', labelsize=18.4)
 ax.tick_params(which='minor', length=2.5)
 
 ax.text(
     0.985, 0.025, '合计：116.0 ms',
     transform=ax.transAxes,
-    ha='right', va='bottom', fontsize=15.0,
+    ha='right', va='bottom', fontsize=16.2,
     color='#4B5563',
     bbox=dict(boxstyle='round,pad=0.22', facecolor='#F2F4F7', edgecolor='none')
 )

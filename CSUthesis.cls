@@ -509,7 +509,7 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 % 目录应列出论文的大标题、一级和二级节标题，逐项标明页码（具体见样例10）。各级标题应简明扼要、点出各部分主要内容。学位论文的页码编排为：正文和后置部分用阿拉伯数字编连续码，前置部分用罗马数字单独编连续码（封面除外）。
 % “目录”两字居中（三号黑体），下空两行为章、节、小节及其开始页码（靠右顶格）。章、节、小节分别以阶梯式排列：1（第1章）、1.1、1.1.1依次标出。章、节、小节的题名与页码之间用“．．．．．．”连接。除“目录”两字外，其余字体均为小四号宋体。
 
-\setcounter{secnumdepth}{3}
+\setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{3}
 % 定义作为标题的格式
 % \titleformat{command}[shape]%定义标题类型和标题样式
@@ -531,7 +531,8 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \titleformat{\subsubsection}{\zihao{-4} \songti}{\thesubsubsection}{1em}{}
 \titlespacing*{\subsubsection} {0pt}{10pt}{8pt}
 \preto\subsubsection{\vspace{5pt}}
-\titleformat{\paragraph}{\zihao{-4} \songti}{\theparagraph}{1em}{}
+\renewcommand\theparagraph{\arabic{paragraph}}
+\titleformat{\paragraph}{\zihao{-4} \songti}{（\theparagraph）}{0.5em}{}
 \titlespacing*{\paragraph} {0pt}{10pt}{8pt}
 \titleformat{\subparagraph}{\zihao{-4} \songti}{(\arabic{subparagraph})}{1em}{}
 \titlespacing*{\subparagraph} {2em}{10pt}{8pt}
