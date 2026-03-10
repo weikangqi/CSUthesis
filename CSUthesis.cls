@@ -533,7 +533,7 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 \preto\subsubsection{\vspace{5pt}}
 \renewcommand\theparagraph{\arabic{paragraph}}
 \titleformat{\paragraph}{\zihao{-4} \songti}{（\theparagraph）}{0.5em}{}
-\titlespacing*{\paragraph} {0pt}{10pt}{8pt}
+\titlespacing*{\paragraph} {2em}{10pt}{8pt}
 \titleformat{\subparagraph}{\zihao{-4} \songti}{(\arabic{subparagraph})}{1em}{}
 \titlespacing*{\subparagraph} {2em}{10pt}{8pt}
 % 定义在目录中的格式

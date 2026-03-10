@@ -271,17 +271,82 @@ def _plot_pdf(out_pdf: str, people: list[int], series: dict[str, list[float]]) -
     plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "SimSun", "DejaVu Sans"]
     plt.rcParams["axes.unicode_minus"] = False
 
-    plt.figure(figsize=(5.6, 3.6))
-    for label, y in series.items():
-        plt.plot(people, y, marker="o", linewidth=1.8, markersize=3.5, label=label)
-    plt.xlabel("人数")
-    plt.ylabel("推理时延（ms）")
-    plt.xticks(people)
-    plt.grid(True, axis="y", linestyle="--", linewidth=0.6, alpha=0.5)
-    plt.legend(frameon=False, ncol=1, fontsize=9)
-    plt.tight_layout()
+    colors = {
+        "本文方法": "#1f77b4",
+        "RTMW3D（单目）": "#d62728",
+        "RTMO+MobileStereoNet（级联）": "#2ca02c",
+    }
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.0, 4.0), sharex=True)
+
+    ax_left, ax_right = axes
+    ax_left.plot(
+        people,
+        series["RTMW3D（单目）"],
+        marker="o",
+        linewidth=1.9,
+        markersize=3.8,
+        color=colors["RTMW3D（单目）"],
+        label="RTMW3D（单目）",
+    )
+    ax_left.set_title("(a) 自顶向下方法的时延增长", fontsize=11)
+    ax_left.set_xlabel("人数")
+    ax_left.set_ylabel("推理时延（ms）")
+    ax_left.set_xticks(people)
+    ax_left.set_ylim(350, 2500)
+    ax_left.grid(True, axis="y", linestyle="--", linewidth=0.6, alpha=0.5)
+    ax_left.legend(frameon=False, fontsize=9, loc="upper left", bbox_to_anchor=(0.02, 0.98))
+
+    for label in ("本文方法", "RTMO+MobileStereoNet（级联）"):
+        ax_right.plot(
+            people,
+            series[label],
+            marker="o",
+            linewidth=1.9,
+            markersize=3.8,
+            color=colors[label],
+            label=label,
+        )
+    ax_right.set_title("(b) 低时延且人数无关的对比", fontsize=11)
+    ax_right.set_xlabel("人数")
+    ax_right.set_ylabel("推理时延（ms）")
+    ax_right.set_xticks(people)
+    ax_right.set_ylim(110, 205)
+    ax_right.grid(True, axis="y", linestyle="--", linewidth=0.6, alpha=0.5)
+    ax_right.legend(
+        frameon=True,
+        facecolor="white",
+        edgecolor="#cccccc",
+        framealpha=0.95,
+        fontsize=7.6,
+        loc="center",
+        bbox_to_anchor=(0.66, 0.43),
+        ncol=1,
+        borderaxespad=0.0,
+    )
+
+    fig.tight_layout(w_pad=0.9, rect=(0.0, 0.02, 1.0, 0.98))
     os.makedirs(os.path.dirname(out_pdf), exist_ok=True)
-    plt.savefig(out_pdf)
+    fig.savefig(out_pdf)
+
+
+def _load_series_from_csv(csv_path: str) -> tuple[list[int], dict[str, list[float]]]:
+    people: list[int] = []
+    ours: list[float] = []
+    rtmw3d: list[float] = []
+    rtmo_msn: list[float] = []
+    with open(csv_path, "r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            people.append(int(row["people"]))
+            ours.append(float(row["ours_ms"]))
+            rtmw3d.append(float(row["rtmw3d_ms"]))
+            rtmo_msn.append(float(row["rtmo_msn_ms"]))
+    return people, {
+        "本文方法": ours,
+        "RTMW3D（单目）": rtmw3d,
+        "RTMO+MobileStereoNet（级联）": rtmo_msn,
+    }
 
 
 def main() -> int:
@@ -291,7 +356,13 @@ def main() -> int:
     ap.add_argument("--work-bbox", default="build/latency_bbox.xml")
     ap.add_argument("--csv-out", default="tools/latency_digitize/latency_vs_people.csv")
     ap.add_argument("--pdf-out", default="images/latency_vs_people.pdf")
+    ap.add_argument("--plot-only", action="store_true")
     args = ap.parse_args()
+
+    if args.plot_only:
+        people, keep = _load_series_from_csv(args.csv_out)
+        _plot_pdf(args.pdf_out, people, keep)
+        return 0
 
     os.makedirs(os.path.dirname(args.work_svg), exist_ok=True)
     subprocess.check_call(["pdftocairo", "-svg", args.input, args.work_svg])
