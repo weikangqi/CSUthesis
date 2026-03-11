@@ -624,7 +624,7 @@ Just choose `xelatex', no `pdflatex' or `latex' and so on.}
 % singlelinecheck=off 表示即使caption只有一行， justification 也生效
 % justification=raggedright 使子图 caption 靠左对齐，而caption的上下位置由\caption标签的位置决定，以此实现了学校要求的子图标签在左上角显示。
 % 这部分功能由 subcaption 这个包实现，而这个包不能和 subfigure 同时使用，所以子图的写法也与 subfigure 包的不大一样。 
-\captionsetup[subfigure]{singlelinecheck=off,justification=raggedright}
+\captionsetup[subfigure]{singlelinecheck=off,justification=centering}
 
 % 图下方描述的楷体字
 \DeclareCaptionFont{kai}{\kaishu}
