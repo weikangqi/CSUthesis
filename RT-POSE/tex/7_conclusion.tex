@@ -1,0 +1,10 @@
+\section{Limitation and Future Work}
+First, to leverage the input data types for training the 3D HPE model, the computational resource is a crucial part. 4D radar tensor in Cartesian coordinate consumes up to 100 MB per frame, which  decreases the training speed. 
+Second, we limit the experimental data collection scope from 2 m to 8 m because the camera is hard to clearly capture 2D pose skeletons at a large distance and LiDAR can not easily collect completed point clouds in near vision due to the constraints of FoV.
+Third, the proposed baseline HRRadarPose lacks robustness in accurately estimating poses during complex activities. Capturing human pose accurately on 4D radar tensor remains an unresolved challenge.
+
+\section{Conclusion}
+In this paper, we propose RT-Pose, the first dataset for human pose estimation (HPE) with synchronized and calibrated 4D radar tensors, LiDAR point clouds, and RGB images. 
+RT-Pose provides cluttered scenarios and human activities of different complexity levels to enhance the difficulty of pose estimation for practical applications. In addition, having various modalities is beneficial for our semi-automatic 3D pose annotation optimization process. The proposed HRRadarPose is the first single-stage architecture designed for estimating human pose using 4D radar tensors as the input. The results indicate that the proposed HRradarPose outperforms previous works, in which datasets are collected with simpler actions and cleaner scenarios. Our work contributes to offering a three-modality dataset with 4D radar tensors for HPE, which is promising to be applied for complex actions and different scenes. 
+We hope this work encourages future development of 4D radar-based HPE methods. 
+\clearpage

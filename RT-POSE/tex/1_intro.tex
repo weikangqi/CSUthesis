@@ -1,0 +1,29 @@
+% \vspace{-15pt}
+\section{Introduction}
+Human localization and 3D pose estimation~\cite{chai2023global,zhang2023mpm,jiang2023unihpe,liu2023posynda,jiang2024back,zhou2024efficient,jiang20242d,yang2023camerapose} are indispensable in Augmented/Virtual Reality~\cite{guzov2021human, lin2010augmented, 9417791, chai2023stablevideo}, human-computer interaction~\cite{yuan2021simpoe, hgr}, healthcare~\cite{NEURIPS2022_af9c9c6d, chen2018patient, lin2021innovative}. 
+However, capturing human poses across diverse scenarios and generating comprehensive 3D representations for individuals in varying poses present significant challenges. Camera based motion capture systems are often used to collect human body posture~\cite{ionescu2013human3,wang2021deep,lin2020innovative}. However, these systems are sensitive to light and require careful multi-camera calibration, making them unreliable for outdoor scenarios and unable to provide overall pose estimation~\cite{chen2022mmbody}. 
+Furthermore, due to privacy concerns, deploying its application in home or long-term care center scenarios poses challenges.
+
+Radar-based method emerges as a promising alternative, characterized by distinctive attributes such as through-wall recognition~\cite{zhao2018through, zheng2021human}.
+%, rendering the method more conducive to practical implementation. 
+In addition, radar is robust to lighting conditions and resilient to various weather conditions and occlusion~\cite{adib2015rf, xie2023rpm}. 
+These characteristics make it especially suitable for safety- and privacy-critical applications~\cite{ahuja2021vid2doppler,sun2022human}.
+In smart automotive applications, radar, as a complementary sensing modality, can complement adverse scenarios such as low-lighting environments and adverse weather~\cite{cross_check}, challenging RGB-based sensing.
+In healthcare applications, RGB-based Human Pose Estimation (HPE)poses privacy risks and is hindered by occlusion, prompting a demand for radar in indoor care environments. 
+Considering the advantages and prospects of radar technology, it is indispensable to provide a dataset that contains divwerse scenarios for fostering radar-based HPE research.
+
+The previous radar-based HPE methods~\cite{xue2021mmmesh,sengupta2020mm,endo2023multi} often utilize Constant False Alarm Rate (CFAR) techniques \cite{de2007design,cruw3d,wang2021rodnet} to extract radar point clouds. However, the effectiveness of CFAR-based point cloud extraction can be easily influenced by variations in radar module types and hardware parameters. Furthermore, different human body reflections in radar signals across diverse environments may require specific adjustments to CFAR parameters, making it challenging to generalize their applications. 
+% Consequently, this variability significantly impacts the efficacy of HPE using radar point cloud data. 
+To address this issue, some works decompose the 4D radar tensor into vertical and horizontal directions as the input of the model to estimate human pose \cite{lee2023hupr,xie2023rpm,yu2023mobirfpose}. This approach computes the magnitude of radar signals for both directions, which effectively reduces data loss during the conversion to point cloud. However, a 4D radar tensor with Doppler values contains the velocity information, which is more informative than a decomposed radar tensor~\cite{paek2022k, cheng2023centerradarnet}. Therefore, this work focuses on exploring the use of raw 4D radar tensors for HPE and establishing a benchmark based on this data format. 
+
+The presented radar tensor-based human pose (RT-Pose) dataset is the first benchmark to integrate calibrated 4D radar tensors, RGB images, and LiDAR point clouds data in the field of HPE. Releasing a multi-modality dataset marks a significant advancement, particularly in the domain of human behavior analyses. There are 
+% 10 participants performing 6 actions, with 
+a total of 72k frames in 240 sequences in the dataset. The actions are organized into sequences of increasing complexity, providing a realistic motion distribution. All experiments are conducted in 5 environmental conditions in 8 scenarios, which ensures the variety of scenarios for better comprehension of the model. Along with the release of this comprehensive RT-Pose dataset, we also build upon the High-Resolution Network (HRNet)~\cite{wang2020deep} to propose  HRRadarPose model, a robust baseline for 3D HPE utilizing 4D radar tensor data. 
+Furthermore, our study also includes a comparative evaluation of different radar data types within our proposed model, as well as benchmarking against previous radar-based methods. These results demonstrate the advantages of employing the 4D radar tensor method over traditional radar point cloud methods, especially in complex actions and diverse scenarios. The 4D radar tensor-based approach presents a challenging but promising direction for future research. In summary, our contributions include:
+\begin{itemize}
+    \item The first dataset provides calibrated 4D radar tensors, LiDAR point clouds, and RGB images for human localization and 3D pose estimation of complex actions in diverse scenarios.
+    \item We develop a reliable 3D human pose annotation workflow by joint optimization with LiDAR point cloud and RGB images for both outdoor and indoor scenarios.
+    \item We propose HRRadarPose, the first single-stage human pose estimator specifically designed to learn 4D radar tensors' representation for the human pose estimation task.
+
+\end{itemize}
+

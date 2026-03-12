@@ -1,0 +1,21 @@
+\begin{table*}[t]
+\centering
+\caption{Comparison of 3D human pose estimation datasets. The first group of rows shows RGB and LiDAR datasets. The second group of rows presents datasets with radar. The radar point cloud is denoted as RPC, and the 4D radar tensor is denoted as 4D-RT.
+$*$ indicates a modified 4D radar tensor with a specific velocity range.}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccccccccc}
+\toprule
+Dataset & RGB           &Depth& LiDAR & RPC& 4D-RT& \# Scenes            & \# Actions                 & \# Seqs & \# FPS                    & \ Time (min) \\ \midrule
+Human3.6M \cite{ionescu2013human3} & $\checkmark$  &&  &                                        &                                       &  - & 15  & 839          &     50                    & 1200   \\
+HSC4D \cite{dai2022hsc4d}                       & $\checkmark$  && $\checkmark$         &                                        &                                       & 3                    & 20 &     -      & 20 & 42      \\
+SLOPER4D \cite{dai2023sloper4d}                  & $\checkmark$  && $\checkmark$         &                                        &                                       & 10                   & -                        & 15          &      20                    & 83      \\
+\midrule
+MARS \cite{an2021mars}                       & &&  & $\checkmark$       &                                       & 1                    & 10& 80& 10& 80\\
+mRI \cite{NEURIPS2022_af9c9c6d}                       & $\checkmark$  &$\checkmark$       &  & $\checkmark$       &                                       & 1                    & 12                         & 300          & 10                        & 264     \\
+HuPR \cite{lee2023hupr}                        & $\checkmark$  &&  &                                        & $\checkmark*$     & -                  & 3                          & 235           &         10                & 240      \\
+\midrule
+RT-Pose~(Ours) & $\checkmark$  && $\checkmark$         &       & $\checkmark$      &     40                 & 6                         & 240          &     10                    &  120       \\ \bottomrule
+\end{tabular}
+}
+\label{tab:dataset}
+\end{table*}

@@ -1,0 +1,26 @@
+\section{Related Works}
+\input{tab/dataset}
+\subsection{3D Human Pose Estimation Datasets}
+As one of the fundamental tasks in the computer vision field, there are lots of works introducing datasets and benchmarks for 3D HPE, as shown in Table~\ref{tab:dataset}. Human3.6M~\cite{ionescu2013human3} is the first large-scale dataset for 3D human sensing in lab environments, which contains 3.6-million frames of corresponding 2D and 3D human poses from mocap captured videos of 5 female and 6 male subjects. Compared to Human3.6M, MPI-INF-3DHP~\cite{mehta2017monocular} is a more challenging 3D human pose dataset captured in the wild. There are 8 subjects with 8 actions captured by 14 cameras covering a greater diversity of poses. 3DPW~\cite{von2018recovering},  the first one to include video footage taken from a moving phone camera, includes 60 video sequences. Recently, several works have explored the possibility of HPE from other modalities like radar and LiDAR. mmBody~\cite{chen2022mmbody} consists of synchronized and calibrated mmWave radar point clouds and RGB-D images in different scenes, as well as skeleton/mesh annotations for humans in the scenes. 
+
+mRI~\cite{NEURIPS2022_af9c9c6d}, a multi-modal 3D HPE dataset using mmWave, RGB-D, and inertial sensors, generates a radar point cloud dataset based on the CFAR method. There are 12 rehabilitation exercises selected to evaluate radar application in home-based health monitoring. 
+HuPR~\cite{lee2023hupr} collects 235 sequences of data by calibrated radar and camera for 2D HPE in an indoor environment. 
+
+All open datasets for radar-based human pose estimation are collected within a limited detection area, which contradicts the characteristics of radar applications for tracking. Although detecting within a small area may ensure system accuracy, it limits the system's practical application.
+Furthermore, to the best of our knowledge, our dataset is the first to include radar, LiDAR, and RGB sequence information with 3D pose annotations. This allows our dataset to provide pose annotations for both indoor and outdoor environments, distinguishing it from existing datasets.
+
+\subsection{Radar-based Human Pose Estimation}
+In spite of the popularity of RGB-based HPE applications, privacy concerns have driven the exploration of radio or radar modalities for HPE. RF-Pose~\cite{zhao2018through} is a pioneering application in 2D HPE utilizing radio frequency signals. RF-Pose demonstrates the feasibility of pose detection in through-wall scenarios and provide the possibility of predicting the 3D pose using radio signals.
+
+On the other hand, frequency-modulated continuous wave (FMCW) radar, which operates in the millimeter-wave band (30-300GHz), has been shown to be suitable for detection and HPE tasks. 
+The radar point cloud is widely used to represent the radar signal in HPE~\cite{an2021mars,sengupta2020nlp,zhang2021comprehensive,NEURIPS2022_af9c9c6d,xue2021mmmesh,chen2022mmbody,sengupta2020mm}. mmMesh~\cite{xue2021mmmesh} introduces a temporal model structure that concurrently captures global and local 3D point cloud structures in spatial dimensions, ensuring precise localization performance for pose estimation. Nonetheless, in cluttered environments, the probability and intensity of radar signal reflections from the human body decrease. Consequently, implementing point cloud-based methods in real-world applications becomes challenging.
+
+Compared to the radar point cloud methods, 
+utilizing 4D tensor radar signal proves to be more informative and reliable
+~\cite{xie2023rpm,zhao2018rf,lee2023hupr,zhao2022angle}. RF-pose 3D~\cite{zhao2018rf} is the first work using the 4D RF tensor to predict 3D skeletons in 22 different locations. However, the used RF system is not commercially available, which is hard to reproduce. HuPR~\cite{lee2023hupr} utilizes two pieces of well-calibrated TI mmWave radar modules to capture vertical and horizontal radar signals, enhancing the resolution of radar elevation signals to improve pose estimation performance. RPM2.0~\cite{xie2023rpm} adopts a similar hardware setup to HuPR but utilizes the HRNet~\cite{wang2020deep} as the backbone and includes an attention model to reconstruct missing keypoints. However, their two-stage model is trained by only walking pose, restricting the actions' complexity for achieving better pose estimation performance. 
+The methods proposed in HuPR and RPM2.0 fuse information from both radar modules.
+While the dual-radar-module configuration potentially captures fine-grained information, its intricate setup poses reproducibility challenges. 
+
+ Unlike previous works, our system employs a single radar module for vertical and horizontal sensing, simplifying the sensors' calibration and synchronization. We use 4D radar tensor as training data for 3D HPE, reducing the likelihood of data loss during radar point generation. Moreover, RT-Pose dataset includes complex actions and is recorded in diverse scenes, expanding the applicability to real-world scenarios. 
+
+

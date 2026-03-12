@@ -1,0 +1,60 @@
+\input{fig/action}
+\section{Experiments} 
+15 obvious keypoints of a human body are selected, aligning with the body skeleton model of the Human3.6M dataset~\cite{ionescu2013human3}. 
+Each frame's 3D pose annotation in the sequence is manually validated to ensure the quality of the dataset. Figure~\ref{fig:action} demonstrates the testing results across various levels of action complexity, presenting the feasibility of 3D pose estimation using the proposed baseline.
+
+\paragraph{Evaluation metrics}
+We employ joint position error (JPE), which measures the mean of the Euclidean distance for every joint's predicted keypoints and the ground truth keypoints. Localization results are reported by the mean of the root position error (MRPE) ~\cite{wang2021deep}, which is the JPE of the pelvis keypoint. For the evaluation of 3D HPE, we use Mean per joint position error (MPJPE)~\cite{zheng2023deep} and absolute-MPJPE (Abs-MPJPE)~\cite{veges2019absolute}.
+
+\paragraph{Baselines Comparison}
+We evaluate the performance of the HRRadarPose in global localization and 3D HPE on the RT-Pose dataset. 
+We compare our method with three baseline methods, as shown in Table \ref{tab:baseline}. mm-Pose \cite{sengupta2020mm} and mmMesh \cite{xue2021mmmesh}, utilizing radar point clouds for 3D HPE, are re-implemented to test on the RT-Pose dataset. 
+% We generate radar point clouds using the CFAR algorithm for radar point cloud-based methods.
+Notably, mmMesh introduces a global localization model, combined with an RNN HPE module, showing more accurate estimation results in both MRPE and MPJPE compared to mm-Pose, which employs a simpler CNN model. RF-Pose 3D~\cite{zhao2018rf} uses the 4D radar tensor with a region proposal network to locate the subjects and estimate the 3D pose. 
+The experimental results show that our HRRadarPose outperforms other baseline methods. On the RT-Pose dataset, we obtain  9.93 cm in MPJPE and 9.91 cm in MRPE. We find that radar-tensor-based methods reach less error than the methods using radar point cloud. 
+We attribute this performance gap to complicated scenarios since it is difficult for point cloud-based methods to discriminate different key points in various poses. 
+The results highlight the importance of using 4D radar tensors, which preserve raw and rich spatial-temporal information for the HPE tasks. 
+An end-to-end architecture directly takes in 4D radar tensors to better face different human action scenarios in the real world.
+\input{tab/baseline_compare}
+
+\input{tab/action}
+\paragraph{Action complexity Analysis}
+RT-pose dataset provides six difficulty levels of actions to simulate real-world scenarios, enabling comprehensive evaluation of localization and 3D HPE results. 
+We report the performance of the proposed HRRadarPose method in Table \ref{tab:action}. Generally, the joints along the human longitudinal axis, such as the thorax and the head, are more stable than those in the limbs. 
+This phenomenon may be attributed to the larger reflective surface of the body's trunk compared to the limbs, providing a more reliable HPE based on radar signals. 
+
+The MRPE of standing posture is below 7.67 cm, indicating that the pose complexity slightly influences the localization accuracy. Due to the chair's strong radar reflection, distinguishing between human subjects and the chair poses a challenge for localization. The MPJPE of walking and sitting is 9.44 cm, showing our HRRadarPose model can reliably estimate the sitting pose. However, the MRPE of this action sequence achieves 14.11 cm, demonstrating that sitting is a key factor for evaluating the performance of localization. The MPJPE of simple actions, such as standing and waving, standing and lifting legs, are around 7 cm, and the walking is 8.93 cm, demonstrating that our HRRadarPose model is comparable to other recently published radar pose estimate methods ~\cite{xie2023rpm,lee2023hupr}. However, the current model still encounters difficulty in estimating HPE in complex actions such as walking and waving. 
+Therefore, the RT-pose dataset is a challenging benchmark, which can enable HPE models to realistically learn diverse pose scenarios.
+
+
+\paragraph{Qualitative Result}
+
+
+\input{fig/Occ_vis}
+
+Figure~\ref{fig:occ_vis} demonstrates the qualitative results of different occlusion conditions and a low-lighting instance.
+Due to the hardware setting of our system, supporting synchronized two camera data, the subject's pose can be visualized by another camera if one of them is occluded.
+Therefore, the 3D annotation results can be generated even on occlusion conditions. 
+Our method provides reliable pose estimation results even when the radar module is blocked or with low-lighting conditions.
+Table~\ref{tab:Occ} shows the HPE results of occlusion in normal outdoor conditions. Although the radar module is occluded, the mmWave signal is still robust enough as input for the HRRadarPose model to estimate HPE, demonstrating the characteristics of radar and the importance of using radar for HPE.
+
+
+
+\paragraph{Ablation Study}
+
+To illustrate the advantage of modeling motion features using Doppler information by our HRRadarPose, we remove Doppler information by averaging 4D radar tensors along the Doppler axis and train the models with and without Doppler information using the same setup. 
+Table~\ref{tab:input} shows that with the inclusion of Doppler information, our HRRadarPose enjoys a performance gain due to its capability to extract motion features, enhancing keypoint localization.
+\input{tab/head_design}
+\input{tab/hrnet_comp}
+\input{tab/CNN_block_design}
+Compared with RPM 2.0, our input data and backbone design are different. 
+The proposed HRRadarPose network extracts better feature representation from 4D radar tensors through modified convolutional blocks. 
+As shown in Figure~\ref{fig:block}, we replace the batch norm with the group norm of convolutional blocks in HRNet. Since we treat the channel-wise features as a Doppler axis, the group norm inherently handles the feature in different speed groups, which normalizes the data effectively. 
+Table~\ref{tab:hrnet_comp} shows the results, proving that the modified CNN block is more suitable for Doppler radar than the original HRNet.
+Compared with our method, most previous work did not leverage Doppler information ~\cite{xie2023rpm,yu2023mobirfpose}. 
+We validate that motion features ~\cite{huang2023observation,lin2015position} are crucial for aiding deep learning models in capturing more human body characteristics over the environment. 
+
+To ablate our design choice of HPE heads, we use the same backbone, replace our pose estimation head with RF-Pose3D's~\cite{zhao2018rf} head, and train both models for the same epochs. 
+RF-Pose3D formulates the HPE as a multi-keypoints classification problem, where their model outputs confidence distributions of every human body joint. 
+As shown in Table~\ref{tab:head}, our design is favorable in joint keypoints localization in the metric space, indicated by a lower Abs-MPJPE. 
+Moreover, lower MPJPE from our HPE head's result validates stronger inter-joint relationships modeling capability.

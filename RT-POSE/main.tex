@@ -1,0 +1,114 @@
+\documentclass[runningheads]{llncs}
+
+% ---------------------------------------------------------------
+% Include basic ECCV package
+ 
+% TODO REVIEW: Insert your submission number below by replacing '*****'
+% TODO FINAL: Comment out the following line for the camera-ready version
+% \usepackage[review,year=2024,ID=7989]{eccv}
+% TODO FINAL: Un-comment the following line for the camera-ready version
+\usepackage{eccv}
+
+% OPTIONAL: Un-comment the following line for a version which is easier to read
+% on small portrait-orientation screens (e.g., mobile phones, or beside other windows)
+% \usepackage[mobile]{eccv}
+
+
+% ---------------------------------------------------------------
+% Other packages
+
+% Commonly used abbreviations (\eg, \ie, \etc, \cf, \etal, etc.)
+\usepackage{eccvabbrv}
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\usepackage{marvosym}
+\usepackage{multirow}
+\usepackage{colortbl}
+% \section{\usepackage{wrapfig}}
+\usepackage{wrapfig}
+
+% The "axessiblity" package can be found at: https://ctan.org/pkg/axessibility?lang=en
+\usepackage[accsupp]{axessibility}  % Improves PDF readability for those with disabilities.
+
+
+% ---------------------------------------------------------------
+% Hyperref package
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% Please disable hyperref *only* if you encounter grave issues.
+% hyperref with option pagebackref eases the reviewers' job, but should be disabled for the final version.
+%
+% If you comment hyperref and then uncomment it, you should delete
+% main.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you
+%  should be clear).
+
+% TODO FINAL: Comment out the following line for the camera-ready version
+% \usepackage[pagebackref,breaklinks,colorlinks,citecolor=eccvblue]{hyperref}
+% TODO FINAL: Un-comment the following line for the camera-ready version
+\usepackage{hyperref}
+
+% Support for ORCID icon
+\usepackage{orcidlink}
+
+
+\begin{document}
+
+% ---------------------------------------------------------------
+% TODO REVIEW: Replace with your title
+\title{RT-Pose: A 4D Radar Tensor-based 3D Human Pose Estimation and Localization Benchmark} 
+
+% TODO REVIEW: If the paper title is too long for the running head, you can set
+% an abbreviated paper title here. If not, comment out.
+\titlerunning{RT-Pose}
+
+% TODO FINAL: Replace with your author list. 
+% Include the authors' OCRID for the camera-ready version, if at all possible.
+\author{Yuan-Hao Ho\inst{1*}\orcidlink{0000-0003-1089-5509} \and
+Jen-Hao Cheng\inst{2*}\orcidlink{0000-0002-6970-3738} \and
+Sheng Yao Kuan\inst{2}\orcidlink{0009-0001-5054-3033} \and
+Zhongyu Jiang\inst{2}\orcidlink{0000-0003-4462-6497} \and
+Wenhao Chai\inst{2}\orcidlink{0000-0003-2611-0008}
+Hsiang-Wei Huang\inst{2}\orcidlink{0009-0009-2474-8869} \and
+Chih-Lung Lin\inst{1} \and \\ 
+Jenq-Neng Hwang\inst{2}\orcidlink{0000-0002-8877-2421}
+\\ * Indicates equal contribution
+}
+
+% TODO FINAL: Replace with an abbreviated list of authors.
+\authorrunning{Y.~Ho et al.}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+
+% TODO FINAL: Replace with your institution list.
+\institute{ National Cheng Kung University \and
+University of Washington
+\\
+\email{n28081527@gs.ncku.edu.tw\textsuperscript{1},\\
+\{andyhci, shengyao, zyjiang, wchai, hwhuang, hwang\}@uw.edu\textsuperscript{2}, \\
+cllin@ee.ncku.edu.tw\textsuperscript{1}
+}
+}
+
+
+\maketitle
+\input{tex/0_abs}
+\input{tex/1_intro}
+\input{tex/2_survey}
+\input{tex/3_setup}
+\input{tex/4_baseline}
+\input{tex/6_exp}
+\input{tex/7_conclusion}
+
+\section*{Acknowledgements}
+We thank Yizhou Wang \footnote{http://yizhouwang.net/} for helping us build the data collection system and the radar data processing pipeline.
+We thank Hou-I Liu \footnote{k39967.c@nycu.edu.tw}, Cheng-Yi Huang \footnote{n28121521@gs.ncku.edu.tw}, Yi Shiang Chen\footnote{m16121051@gs.ncku.edu.tw},  Chi-Yuan Chan\footnote{n26120587@gs.ncku.edu.tw}, and Yu-Hsien Lu\footnote{n26120587@gs.ncku.edu.tw} for helping us collect the RT-Pose dataset. 
+We thank the National Science and Technology Counci of the Republic of China, Taiwan, under Projects of NSTC 112-2917-I-006-007 for its funding support.
+
+
+\bibliographystyle{splncs04}
+\bibliography{main}
+\end{document}

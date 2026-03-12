@@ -1,0 +1,22 @@
+\begin{table*}[t]
+\centering
+\caption{Comparison of the performance predicted by the HRRadar Pose in different complexity level activities, presenting different key points of the pose, the results of localization, and total 3D pose estimation results. 
+The first group of rows lists the stand-related poses, while the other lists the walking-related poses. The complexity level increases from the top activity to the bottom within each group.}
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{ll|cccc|c|cc}
+\toprule
+\multicolumn{2}{c|}{}    & \multicolumn{4}{c|}{JPE(cm)}  & \multicolumn{1}{c|}{} & \multicolumn{1}{c}{} & \multicolumn{1}{c}{} \\ 
+\multicolumn{2}{c|}{\multirow{-2}{*}{Actions}} & \multicolumn{1}{c}{Thorax} & \multicolumn{1}{c}{Head} & \multicolumn{1}{c}{Ankle} & \multicolumn{1}{c|}{Wrist} & \multicolumn{1}{c|}{\multirow{-2}{*}{MRPE (cm)}}       & \multicolumn{1}{c}{\multirow{-2}{*}{MPJPE (cm)}}
+& \multicolumn{1}{c}{\multirow{-2}{*}{Abs-MPJPE (cm)}}\\ \midrule
+                             & Waving Hand     &             2.95               &               3.97&              3.61&              25.65&                 3.35&                 6.91&            7.97\\
+                             & Lifting Leg     &              6.12&            7.92&             12.24&             8.88&             7.55&              7.06&              10.37\\
+\multirow{-3}{*}{Stand:}      & Random Pose     &              7.78&           11.21&           11.75&                  32.12&                      7.67&                   12.47&                 15.12\\ \midrule
+                             & Normal          &              4.31&         6.69&               13.52&               15.98&             13.67&            8.93&             16.92\\
+                             & Siting     &          9.36&        13.03&                    13.93&             10.77&             14.11&                       9.44&                16.83\\
+\multirow{-3}{*}{Walk:}       & Waving Hand          &             5.74&              10.37&             13.53&               43.16&                  12.82&    15.28&             21.22\\ \bottomrule
+\end{tabular}
+}
+\label{tab:action}
+% \vspace{-10pt}
+\end{table*}
+

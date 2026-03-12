@@ -1,0 +1,42 @@
+\begin{table}[t]
+  \centering
+  \begin{minipage}[c]{0.48\textwidth}
+        \centering
+        \caption{ HPE results from HRRadarPose in normal and occlusive scenarios.}
+        \resizebox{0.9\linewidth}{!}{
+        \begin{tabular}{c| c c}
+        \toprule
+        
+         Occlusion & MPJPE (cm)              & Abs-MPJPE (cm)          \\ \midrule
+               & 9.84                  & 14.52               \\
+        \checkmark                     & 11.57                   & 18.55                 \\
+        \bottomrule
+        \end{tabular}
+        }
+        \label{tab:Occ}
+
+  \end{minipage}
+  \hspace{0.02\textwidth}
+  \begin{minipage}[c]{0.48\textwidth}
+
+    \centering
+
+    \caption{Ablation Study of Using Dopper information.}
+    \resizebox{0.9\linewidth}{!}{
+    \begin{tabular}{c|cc}
+    \toprule
+    Doppler           & MPJPE~(cm) & Abs-MPJPE~(cm) \\ \midrule
+                          &                   11.31                         &                         22.34                       \\
+    \checkmark                             &               9.91                             &                  14.73\\ 
+    
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:input}
+
+  \end{minipage}
+  % \vspace{-24pt}
+\end{table}
+
+% Comparison of common 4D radar tesnor-based HPE head and the proposed one.
+% Our HPE head learns the unified keypoint representation advantageous in modeling the human body's inter-joint relationships (MPJPE) and localization (Abs-MPJPE).

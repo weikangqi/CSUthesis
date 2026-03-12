@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\caption{Comparison of human localization and 3D pose estimation results of our HRRadarPose method and three baseline methods. $\dagger$ represents the radar point cloud-based methods.}
+\resizebox{.7\linewidth}{!}{
+\begin{tabular}{l|c | c c}
+\toprule
+
+ % \multirow{2}{*}{Method} & \multicolumn{3}{c|}{W/O Occlusion} & \multicolumn{3}{c}{W/ Occlusion} \\
+ Method & MRPE (cm)             & MPJPE (cm)              & Abs-MPJPE (cm)          \\ \midrule
+mm-Pose~$\dagger$~\cite{sengupta2020mm}          & 102.28                                & 21.26                   & 102.7               \\
+mmMesh~$\dagger$~\cite{xue2021mmmesh}                                      & 62.69                                 & 13.78                   & 66.24                 \\
+\midrule
+RF-Pose3D~\cite{zhao2018rf}           &       29.17        &  18.43  &  38.05 \\
+HRRadarPose~(Ours)     & \textbf{9.91}& \textbf{9.93}& \textbf{14.73}\\ 
+\bottomrule
+\end{tabular}
+}
+\label{tab:baseline}
+% \vspace{+10pt}
+\end{table}
+
