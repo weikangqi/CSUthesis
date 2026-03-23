@@ -7,7 +7,7 @@
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.9\textwidth]{images/Human_computer_interaction_scenario.png}
+  \includegraphics[width=0.6\textwidth]{images/Human_computer_interaction_scenario.png}
   \caption{机器人与人交互场景}
   \label{fig:hci_scenario}
 \end{figure}
@@ -49,98 +49,48 @@
 
 \paragraph{直接回归方法}
 
-Kanazawa 等人提出 HMR\citess{kanazawa2018end}，通过对抗学习将图像特征直接映射为 SMPL 参数，奠定了从单张图像恢复人体三维形状与姿态的经典框架。该方法将人体网格恢复与参数回归统一到同一网络中，推动了基于人体模型先验的单目三维姿态估计研究。
-
-Kolotouros 等人提出 SPIN\citess{kolotouros2019learning}，将基于模型的优化过程嵌入网络训练环节，以 2D 重投影误差持续修正 SMPL 参数，从而提高了人体姿态与形状拟合精度。与直接回归方法相比，该方法更强调“预测 + 迭代优化”的结合，在弱监督场景下表现出更强的参数校正能力。
-
-Li 等人提出 CLIFF\citess{li2022cliff}，针对裁剪后透视信息丢失的问题，将人体在原图中的全局位置信息重新注入网络，使模型能够感知相机视锥并缓解尺度偏差。该工作说明，单目三维人体恢复不仅依赖局部人体外观，还高度受相机成像几何和人体在图像中全局位置的影响。
+直接回归方法以端到端方式将图像特征映射为人体三维参数，其发展脉络清晰地体现了对”几何一致性”这一核心问题的逐步深化。HMR\citess{kanazawa2018end} 通过对抗学习将图像特征直接映射为 SMPL 参数，首次将人体网格恢复与参数回归统一到同一框架，奠定了基于模型先验的单目三维姿态估计基础路线；但纯回归方案在弱监督条件下容易积累参数偏差。SPIN\citess{kolotouros2019learning} 为此将迭代优化嵌入训练过程，以 2D 重投影误差在线修正 SMPL 参数，”预测 + 迭代校正”的协同机制在弱监督场景下表现出更强的拟合精度。CLIFF\citess{li2022cliff} 则进一步指出，裁剪操作会丢失人体在原图中的全局透视信息，并将其重新注入网络以缓解尺度偏差，揭示了相机成像几何对三维参数估计的深层影响。三者共同说明，单图参数回归的研究重心已从”能否预测三维参数”转向”如何在多样化拍摄条件下保持几何一致性”。
 
 \paragraph{2D--3D 提升方法}
 
-Martinez 等人提出简洁的全连接基线\citess{martinez2017simple}，证明仅基于二维骨架也可恢复较高质量的三维姿态，为后续 2D--3D 提升方法提供了强有力的基线。该工作弱化了对原始图像纹理的依赖，突出了骨架拓扑先验在三维恢复中的作用。
+2D--3D 提升方法将姿态恢复分解为"图像→二维骨架→三维姿态"两步，通过将问题约束在骨架域内显著降低了对图像纹理的依赖。Martinez 等人的全连接基线\citess{martinez2017simple} 最早证明仅凭二维关节坐标即可恢复高质量三维姿态，确立了骨架拓扑先验的核心地位。随后，时序建模迅速成为缓解单帧深度歧义的主要手段：VideoPose3D\citess{pavllo2019videopose3d} 以时序卷积聚合前后帧信息，有效稳定三维关节轨迹；PoseFormer\citess{zheng2021poseformer} 引入 Transformer 增强长程帧间依赖建模，但计算代价随序列长度显著上升；PoseMamba\citess{huang2025posemamba} 以双向状态空间模块将序列建模复杂度从 $O(n^2)$ 降至 $O(n)$，在保持精度的同时显著降低长序列推理开销，代表了时序提升方向持续向高效化演进的趋势。
 
-Pavllo 等人提出 VideoPose3D\citess{pavllo2019videopose3d}，利用时序卷积聚合前后帧信息，有效缓解了单帧估计中的深度歧义与抖动。该方法表明时序上下文对于稳定三维关节轨迹非常关键，尤其适合视频场景下的连续姿态恢复。
+随着场景复杂度提升，多人估计与大规模预训练成为 2D--3D 提升研究的两个重要延伸方向。在多人扩展方面，ROMP\citess{sun2021monocular} 以中心热力图与整图回归策略实现了人数无关的多人三维重建，避免了逐人裁剪导致的推理开销线性增长；RTMW\citess{jiang2024rtmw} 进一步构建了支持实时多人全身姿态估计的统一高效框架，体现了自底向上方法在场景扩展性上的优势。在预训练方面，MotionBERT\citess{zhu2023motionbert} 以大规模掩码重建预训练骨架表征，单一模型可迁移至三维姿态估计、动作识别与网格恢复等多个下游任务；WHAM\citess{shin2024wham} 联合恢复局部姿态与全局世界坐标系轨迹，通过运动先验解耦相机与人体运动，在无需真实相机参数的条件下实现全局轨迹重建；NLF\citess{sarandi2024nlf} 在大规模异构标注数据上学习连续体点定位函数，在多个跨域基准上展现出较强的泛化能力。这些工作表明，骨架表征预训练与大规模数据驱动建模已成为单目三维姿态估计的重要发展方向。
 
-Zheng 等人提出 PoseFormer\citess{zheng2021poseformer}，将 Transformer 引入三维姿态提升任务，增强了模型对长时序依赖的建模能力。相比时序卷积结构，该方法更擅长建模远距离帧间关系，但也伴随着更高的计算和存储开销。
-
-贾迪等\citess{jia2025monocular3dhpecn}提出融合多关节特征的单目视觉三维人体姿态估计网络，通过多关节特征融合增强关节间依赖建模，在单目三维人体姿态估计中提高了准确性与泛化能力。
-
-杨红红等\citess{yang2025pmstgnetcn}提出基于平行多尺度时空图卷积网络的三维人体姿态估计算法，构造对角占优的时空注意力图卷积和多尺度交叉融合模块，以增强骨架关节点的时空关系建模能力。
-
-Sun 等人提出 ROMP\citess{sun2021monocular}，利用中心热力图和整图回归策略实现了人数无关的多人三维人体重建，代表了自底向上多人三维姿态估计的一类典型思路。该方法避免了逐人裁剪带来的推理开销增长，但在拥挤场景中的实例分离和遮挡鲁棒性仍是后续工作持续改进的重点。
-
-Zhu 等人提出 MotionBERT\citess{zhu2023motionbert}，以双流并行 Transformer（DSTformer）为骨干构建统一预训练框架，以二维姿态序列为输入进行大规模掩码重建预训练，单一模型可同时迁移至三维姿态估计、动作识别与网格恢复等下游任务，是基于骨架表征预训练的代表性成果。
-
-Jiang 等人进一步提出 RTMW\citess{jiang2024rtmw}，面向实时多人 2D/3D 全身姿态估计构建统一高效框架，说明国内学者在多人三维恢复、骨架表征预训练与实时化部署三个方向上都已形成连续积累。
-
-Shin 等人提出 WHAM\citess{shin2024wham}，以视频为输入联合恢复人体局部三维姿态与全局世界坐标系轨迹，通过整合脚步接触约束与运动先验实现相机运动与人体运动的解耦，在无需真实相机参数的条件下提升了单目视频全局轨迹重建能力。
-
-S\'ar\'andi 等人提出神经定位场（NLF）\citess{sarandi2024nlf}，在大规模异构标注数据上学习连续体点定位函数，在多个跨域基准上展现出较强的泛化能力，体现了单目三维姿态估计中大规模预训练建模路线的发展趋势。
-
-Huang 等人提出 PoseMamba\citess{huang2025posemamba}，以双向时空状态空间模块建模关节时序关系，将序列建模复杂度从 $O(n^2)$ 降至 $O(n)$，在保持精度的同时降低了长序列推理开销，代表了高效时序提升方法的一种新方向。
+国内研究方面，贾迪等\citess{jia2025monocular3dhpecn} 以多关节特征融合增强关节间依赖建模，杨红红等\citess{yang2025pmstgnetcn} 构造平行多尺度时空图卷积强化时空关系表达，在精度与泛化上均有所改进，体现了国内学者在单目三维姿态估计骨架建模与时空表达方向的持续探索。
 
 总体来看，单目方法虽然进展迅速，但其根本困难仍在于深度歧义。仅凭单幅图像，人体尺度变化、自遮挡、视角变化以及复杂背景都可能导致不同三维姿态投影到相近的二维观测，因此在需要绝对空间定位的任务中往往依赖较强的数据先验或额外约束。
 
 \subsubsection{多目三维人体姿态估计研究现状}
 与单目方法相比，多目系统能够利用跨视图几何一致性显式提供深度线索，因此通常在三维定位精度和遮挡鲁棒性方面更具优势。在多人交互、严重遮挡和大范围动作场景中，不同视角之间的互补观测能够显著降低关键点缺失和深度歧义带来的影响，因此多目方案长期是高精度三维人体姿态估计的重要路线。
 
-Tu 等人提出 VoxelPose\citess{tu2020voxelpose}，将多相机二维热力图提升到统一三维体素空间中联合推理，证明了多视角几何约束对复杂场景三维姿态恢复的有效性。该方法通过把各视角二维观测统一映射到三维空间进行融合，显著提升了多人场景下的三维重建稳定性，体现了多目方法“先在三维空间对齐，再做关节推理”的代表性设计思路。然而体素空间的分辨率与视角数量之积直接决定计算代价，使该类方法在大场景或高帧率场景中面临较大的算力挑战。
+多目方法的核心挑战在于如何高效融合跨视角观测并在三维空间中完成关节推理，现有研究沿两条路线展开。沿体素融合路线，VoxelPose\citess{tu2020voxelpose} 将多相机二维热力图统一映射到三维体素空间进行联合推理，体现了”先在三维空间对齐再做关节推理”的代表性设计思路，显著提升了多人场景下的三维重建稳定性。然而，体素空间的分辨率与视角数量之积直接决定计算代价，使此类方法在大场景或高帧率场景中面临较大的算力挑战。
 
-董婧等\citess{dong2025cfjcnetcn}提出联合多视图可控融合和关节相关性的三维人体姿态估计方法，通过多视图可控融合优化模块、关节相关性建模和结构化三角剖分联合提升二维热图质量与三维重建精度。
+针对体素方法效率不足的问题，研究者探索了基于几何感知特征融合的替代路线。MVGFormer\citess{liao2024multiple} 以三维查询为中心、在极线约束引导下聚合跨视图特征并以可微三角化迭代细化，在跨域泛化方面明显优于纯学习式方法，但 Transformer 堆叠带来的算力开销仍限制了其在资源受限平台上的部署。TEMPO\citess{choudhury2023tempo} 以循环时空架构在单次前向中同时完成多视角姿态估计、人员跟踪与未来姿态预测，通过复用跨帧时序特征避免逐帧重建完整三维体积，是多目方法走向实时化的代表性工作。MV-SSM\citess{chharia2025mvssm} 则以 Mamba 状态空间模型替代注意力机制进行多视角融合，在保持线性时间复杂度的同时有效建模跨视角长程依赖，在 CMU Panoptic 和 Campus 跨域评测上均刷新当前最优精度，代表了该方向的最新进展。
 
-
-Liao 等人提出 MVGFormer\citess{liao2024multiple}，在 Transformer 框架内引入显式多视角几何推理：以三维查询为中心，将其投影至各视角图像平面，在极线约束引导下聚合跨视图特征，并以可微三角化进行迭代细化，实现了几何感知的端到端训练。实验表明，该方法在跨域泛化（不同相机布局）方面明显优于纯学习式方法，但 Transformer 堆叠带来的算力开销限制了其在资源受限平台上的直接部署。
-
-针对多目方法在效率与时序一致性上的不足， Choudhury 等人提出 TEMPO\citess{choudhury2023tempo}，采用循环时空架构在单次前向中同时完成多视角姿态估计、人员跟踪与未来姿态预测，通过复用跨帧时序特征避免逐帧重建完整三维体积，在显著降低计算量的同时提升了跨帧的一致性，是多目方法走向实时化的代表性工作。
-
-Chharia 等人提出 MV-SSM\citess{chharia2025mvssm}，以 Mamba 状态空间模型（SSM）替代 Transformer 注意力机制进行多视角融合，设计了带有网格令牌引导双向扫描（GTBS）的投影状态空间（PSS）模块，在保持线性时间复杂度的同时有效建模跨视角长程依赖。该方法在 CMU Panoptic（3 相机）和 Campus 跨域评测上均刷新当前最优精度，是多目三维姿态估计领域的最新进展。
+国内研究方面，董婧等\citess{dong2025cfjcnetcn} 在 VoxelPose 框架基础上引入多视图可控融合优化模块与关节相关性建模，通过联合优化热图质量与三维重建路径进一步提升了精度，是国内在体素融合路线上的代表性改进工作。
 
 总体来看，多目方法在复杂遮挡和大范围动作场景中通常具有更高的三维恢复上限，但其多相机部署、时间同步和联合标定成本较高，系统搭建与维护复杂度也明显高于单目与双目方案。此外，多目方案往往依赖较固定的相机布局和采集空间，更适合演播室、动作捕捉棚或固定监控区域，而不适合硬件资源和安装条件都更受限制的移动端部署场景。
 \subsubsection{双目深度估计与双目三维恢复研究现状}
-双目方法的核心在于跨视图对应关系建立与深度恢复。传统立体匹配方法主要依赖手工代价设计与多路径聚合。
+双目深度估计的发展历程清晰地体现了从手工设计向端到端学习、再向高效迭代细化的演进脉络。传统方法以 SGM\citess{hirschmuller2005accurate} 为代表，通过沿多方向聚合匹配代价在精度与效率间取得良好平衡，成为工业界广泛使用的经典方案；然而手工代价设计在弱纹理和遮挡区域仍易出现匹配不稳定，难以适应复杂场景需求。
 
-Hirschmüller 提出 SGM\citess{hirschmuller2005accurate}，通过沿多方向聚合匹配代价，在精度和效率之间取得较好平衡，成为工业界和工程系统中最常用的经典方案之一。该方法不依赖大规模学习参数，具有较强的工程可实现性，但在弱纹理和遮挡区域仍易出现匹配不稳定。
+随着深度学习的发展，基于代价体的学习式范式逐步主导这一领域。GC-Net\citess{kendall2017end} 率先以 3D 卷积对代价体进行正则化，PSMNet\citess{chang2018pyramid} 引入空间金字塔池化增强全局上下文建模，GwcNet\citess{guo2019gwcnet} 以分组相关替代特征拼接降低构建开销，三者共同奠定了代价体学习立体匹配的主流范式。但 3D 卷积带来的计算与显存消耗始终是制约代价体方法实时化部署的主要瓶颈。
 
-随着卷积神经网络的发展，双目深度估计逐步从”手工特征 + 后处理”转向”特征提取 + 代价体构建 + 端到端回归”的学习式范式。Kendall 等人提出的 GC-Net\citess{kendall2017end} 率先引入 3D 卷积对代价体进行正则化，Chang 等人的 PSMNet\citess{chang2018pyramid} 进一步以空间金字塔池化和堆叠沙漏结构增强全局上下文建模，Guo 等人的 GwcNet\citess{guo2019gwcnet} 则以分组相关替代拼接以降低代价体构建开销——三者共同奠定了基于代价体学习的立体匹配主流范式，但 3D 卷积带来的计算与显存消耗也成为制约实时化部署的主要瓶颈。
+为克服代价体计算开销过大的问题，以迭代细化为核心的方法逐渐兴起并持续演进。RAFT-Stereo\citess{lipson2021raft} 以 GRU 迭代更新方式逐步细化视差场，在跨域泛化能力上明显优于代价体正则化方法。IGEV-Stereo\citess{xu2023igev} 在此基础上构建联合几何编码体，以更紧凑的特征表达支撑 GRU 迭代，在 SceneFlow 和 KITTI 基准上以更低计算量超越了 RAFT-Stereo；Selective-Stereo\citess{wang2024selectiveigev} 进一步引入自适应选择机制动态融合几何体与上下文特征，取得了 KITTI 2015 的当时最优精度。与此同时，MobileStereoNet\citess{shamsafar2022mobilestereonet} 通过削减代价聚合复杂度与优化网络结构面向移动端设计，使学习式双目匹配在实时性上取得更好的工程平衡。
 
+国内研究方面，李曈等\citess{li2020stereoadaptivecn} 针对代价体范式中特征冗余与感受野受限的问题，设计了适配立体匹配的特征提取结构与分离 3D 卷积，在保证精度的同时显著减少参数量；贾迪等\citess{jia2024weaktexturestereocn} 则以空间池化窗口与跳跃查询策略增强弱纹理区域的上下文表示与遮挡估计能力，两项工作均体现了国内研究在学习式立体匹配高效化与鲁棒性方向的代表性探索。
 
-李曈等\citess{li2020stereoadaptivecn}提出适应立体匹配任务的端到端深度网络，针对特征提取冗余和 3D 卷积感受野受限问题设计适配立体匹配任务的特征提取结构与分离 3D 卷积，在保证精度的同时显著减少参数量与训练开销。
-
-贾迪等\citess{jia2024weaktexturestereocn}提出面向弱纹理目标立体匹配的 Transformer 网络，通过空间池化窗口、重叠式块嵌入和跳跃查询策略增强弱纹理区域的上下文表示与遮挡估计能力。
-
-Lipson 等人提出 RAFT-Stereo\citess{lipson2021raft}，以 GRU 迭代更新方式逐步细化视差场，代替了计算代价更高的三维卷积，在跨域泛化能力上明显优于代价体正则化方法。围绕这一迭代精化路线，国内团队持续推进几何编码与轻量表达设计：Xu 等人提出 IGEV-Stereo\citess{xu2023igev}（CVPR 2023），构建融合局部与全局几何信息的联合几何编码体（IGEV），以更紧凑的特征表达支撑 GRU 迭代细化，在 SceneFlow 和 KITTI 基准上以更低计算量超越了 RAFT-Stereo；Wang 等人进一步提出 Selective-Stereo\citess{wang2024selectiveigev}（CVPR 2024），在 IGEV 基础上引入自适应选择机制，对内部几何体与外部上下文特征进行动态融合，取得了 KITTI 2015 排行榜当时最优精度，代表了国内学者在学习式立体匹配前沿方向上的连续推进。
-
-Shamsafar 等人提出 MobileStereoNet\citess{shamsafar2022mobilestereonet}，面向移动端设计轻量化匹配网络，通过削减代价聚合复杂度和优化网络结构，使学习式双目匹配更接近移动端部署需求，在实时性方面取得了更好的工程平衡。
-
-对于本文任务而言，上述立体匹配研究的重要启发在于：双目深度恢复的主流高精度方案大多依赖代价体、全视差搜索和多轮特征聚合，而这些模块恰恰也是端侧部署中最主要的算力与访存开销来源。因此，当双目视觉被用于人体三维姿态恢复时，若仍直接沿用稠密视差估计范式，往往会带来较重的系统负担。这也说明，双目三维姿态估计不能简单等同于“人体关键点检测 + 立体匹配”的串联，而需要围绕关节任务重新审视双目交互方式和几何恢复路径。
+综上，双目深度估计在精度和效率两个维度均取得了显著进展，但主流高精度方案大多依赖全视差搜索与多轮特征聚合，端侧部署代价较高。当双目视觉被用于人体三维姿态恢复时，若仍直接沿用稠密视差估计范式，往往会带来较重的系统负担，双目三维姿态估计不能简单等同于”人体关键点检测 + 立体匹配”的串联，而需要围绕关节任务重新审视双目交互方式和几何恢复路径。
 \subsubsection{双目三维人体姿态估计研究现状}
-双目三维人体姿态估计通常沿“二维关键点检测 + 深度/视差先验 + 三维回代”的路线展开，即先通过双目匹配恢复深度信息，再结合人体关键点位置完成三维关节求解。
-
-Zhang 等人提出 MobiDepthPose\citess{zhang2022mobidepth}，将视频中的人体二维关键点检测与双目深度估计结合，实现了面向移动设备的深度感知三维姿态恢复。该方法体现了“二维姿态 + 深度先验”级联路线在视频场景中的可行性，但其三维精度仍明显受制于前端深度估计质量，且深度与姿态两个模块之间缺乏联合优化。
-
-Lu 等人提出的 RTMO\citess{lu2024rtmo} 等轻量二维姿态检测器也常与 SGM 或 MobileStereoNet\citess{shamsafar2022mobilestereonet} 等双目匹配模块串联，以快速构建可部署的双目三维人体姿态估计系统。该路线模块复用度高、实现直接，但其性能受二维检测误差与深度估计误差的双重影响，且整图密集视差估计的计算成本通常远超关节级三维恢复本身，在端侧场景中效率较低。
-
-Zhang 和 Guo 提出 DMCPose\citess{zhang2024dmcpose}，以前端高精度二维姿态网络提取双目关键点观测，再结合关键点级视差、多视图一致性与注意力机制进行动态融合，从而绕开传统稠密立体匹配的整图搜索过程。该方法说明双目三维人体姿态估计可以围绕人体关节建立更轻量的几何恢复路径，是近年来“双目几何先验 + 注意力融合”思路的代表性工作之一；但其验证场景仍以受控数据集上的单人动作为主，尚未进一步覆盖多人实时场景与资源受限端侧部署条件。
+双目三维人体姿态估计通常沿”二维关键点检测 + 深度/视差先验 + 三维回代”的路线展开。现有代表性工作在这一框架内体现了由粗到精的逐步优化思路：MobiDepthPose\citess{zhang2022mobidepth} 将视频二维关键点检测与双目深度估计直接级联，率先验证了该路线在移动视频场景下的可行性，但深度估计质量直接制约三维精度，两模块间缺乏联合优化；以 RTMO\citess{lu2024rtmo} 等轻量检测器与 SGM 或 MobileStereoNet\citess{shamsafar2022mobilestereonet} 串联的方案提升了模块复用度和部署便利性，但整图密集视差估计的计算成本远超关节级三维恢复本身，在端侧场景中效率瓶颈更为突出；DMCPose\citess{zhang2024dmcpose} 则以关键点级视差结合注意力机制进行动态融合，绕开了整图搜索过程，是”双目几何先验 + 稀疏注意力融合”思路的代表性工作，但验证场景仍以受控单人动作数据集为主，尚未覆盖多人实时与端侧部署条件。
 
 值得注意的是，目前专门针对双目相机的端到端三维人体姿态估计研究仍较为匮乏：现有工作大多沿用“二维检测 + 深度/视差恢复 + 三维回代”的多阶段级联思路，或将多视角方法直接压缩到双目设置，只有少量工作开始从关节任务需求出发重新设计双目特征交互与几何恢复路径。近年来，随着轻量化骨干与极线约束注意力机制的逐步成熟，部分探索性工作已开始尝试以关键点级几何约束替代全图视差估计，但系统性的端到端双目三维姿态估计方法与面向端侧的量化部署研究仍极为稀缺。这一研究空白在端侧轻量化部署场景中尤为突出——级联方案的计算冗余与误差传播问题在资源受限设备上被进一步放大，表明设计面向端侧的端到端双目三维姿态估计框架具有重要的实际价值。
 
 总体来看，现有双目三维人体姿态估计方法仍以级联方案为主，二维检测误差与深度估计误差容易耦合，整图深度估计开销偏重，这些因素共同限制了其在端侧场景中的进一步优化空间，也正是本文所要重点解决的核心问题。
 \subsubsection{常用数据集与评测基准}
-三维人体姿态估计研究高度依赖公开数据集。不同基准在场景复杂度、视角配置与标注形式上侧重点不同，也决定了其更适合支撑哪一类方法评测。
+\label{subsec:related_datasets}
+三维人体姿态估计领域的主要公开基准可按视角配置分为单目、多目与双目三类。单目方面，Human3.6M\citess{ionescu2014human36m} 是最常用的室内精度参照，以 MPJPE 为核心指标；3DPW\citess{vonmarcard2018recovering} 覆盖室外场景，侧重域外泛化评测。多目方面，CMU Panoptic\citess{joo2015panoptic} 以密集多相机阵列采集，三维标注精细，是 VoxelPose、TEMPO 等多目方法的主要评测平台。双目方面可用基准相对稀缺：MADS\citess{zhang2017mads} 提供武术、舞蹈等大幅度动作与完整双目标定，常用于跨数据集泛化验证；RT-Pose\citess{ho2024rt} 则覆盖多人、弱光与遮挡等真实双目场景，标注与 Human3.6M 兼容，是目前最完善的真实场景双目三维姿态基准，本文以其作为主要训练与评测数据集，以 MADS 作为零样本跨数据集测试集。
 
-Human3.6M\citess{ionescu2014human36m} 是最常用的室内单人三维姿态基准，提供精确相机参数与大规模动作采集数据，通常以 MPJPE 作为核心评价指标，是单目与受控场景三维姿态方法的重要参照。
-
-CMU Panoptic\citess{joo2015panoptic} 面向多人多视角重建，具有视角数量多、遮挡复杂和三维标注精细等特点，是 VoxelPose、TEMPO、MVGFormer 等多目方法的主要评测平台。
-
-MADS\citess{zhang2017mads} 是少数面向双目配置的公开三维姿态数据集，包含武术、舞蹈和体育等大幅度动作，并提供完整双目标定参数，因此常被用作双目方法的跨数据集泛化或特定场景验证基准。
-
-3DPW\citess{vonmarcard2018recovering} 主要面向自然场景下的单目三维人体恢复，覆盖室外复杂环境，常用于评估模型的域外泛化能力。
-
-RT-Pose\citess{ho2024rt} 是较新的真实双目三维人体姿态基准，覆盖室内外多场景、多人活动、弱光与遮挡条件，并提供与 Human3.6M 兼容的三维骨架标注和双目相机标定信息。本文实验仅使用其双目 RGB 数据流，将其作为轻量化双目三维人体姿态估计的核心训练与评测基准。
-
-总体而言，单目方法多依赖 Human3.6M 与 3DPW 评测精度和泛化，多目方法主要在 CMU Panoptic 上验证复杂场景重建能力，而双目方法可用公开基准相对有限，常结合 MADS 与 RT-Pose 等数据集开展评测。本文以 RT-Pose 作为主基准，并以 MADS 作为零样本跨数据集测试集，用于验证所提方法在真实双目场景下的精度与泛化表现。
-
-% 从相关工作的演进看，一类方法更强调单目或多目设置下的精度上限与跨域泛化能力。Sarandi 等人提出 NLF，在大规模异构标注数据上学习连续体定位函数，展现出较强的跨域能力\citess{sarandi2024nlf}。Shin 等人提出 WHAM，将视频人体姿态恢复进一步扩展到全局轨迹估计\citess{shin2024wham}。在多目设置下，Liao 等人提出 MVGFormer，将显式多视角几何推理引入 Transformer 框架\citess{liao2024multiple}。Chharia 等人提出 MV-SSM，以状态空间模型降低多视角融合复杂度\citess{chharia2025mvssm}。另一类工作则更关注高效时序建模与稠密立体匹配。Jiang 等人提出 RTMW3D，强调实时多人全身姿态恢复\citess{jiang2024rtmw}。Huang 等人提出 PoseMamba，以线性时序建模降低长序列推理开销\citess{huang2025posemamba}。Wang 等人提出 Selective-IGEV，进一步提升了学习式立体匹配在精度与效率之间的平衡\citess{wang2024selectiveigev}。相比之下，“面向端侧、围绕关节级几何恢复重新组织双目推理链路”的工作仍然较少，这正是本文的切入点。
 
 \subsection{研究内容}
 \label{subsec:intro_contribution}
@@ -158,7 +108,7 @@ RT-Pose\citess{ho2024rt} 是较新的真实双目三维人体姿态基准，覆�
 
 第三章为基于双目相机的轻量化双目三维人体姿态估计网络设计。提出一种轻量化非对称双目学习框架：以非对称骨干网络消除双分支对称冗余，以极线特征增强模块将跨视图匹配限制在一维极线搜索空间，以可微加权三角化姿态求解器实现端到端的三维关节坐标恢复，并通过对比实验与消融实验验证各模块的有效性，如图~\ref{fig:system_overview}所示。
 
-第四章为硬件感知部署与量化压缩。以 Snapdragon~8~Gen3 CPU 为已完成定量验证的平台，通过延迟拆解与 Roofline 模型定位推理瓶颈，借助量化敏感性分析制定分层混合精度量化方案，经后训练量化流程输出可部署的 MNN 模型，并在真机上验证精度保持与推理加速效果；此外，本章还在 NVIDIA Jetson AGX Xavier 开发套件上完成平台验证、资源评估与系统展示。
+第四章为面向端侧实时推理的混合精度量化部署方法。以 Snapdragon~8~Gen3 CPU 为已完成定量验证的平台，通过延迟拆解与 Roofline 模型定位推理瓶颈，借助量化敏感性分析制定分层混合精度量化方案，经后训练量化流程输出可部署的 MNN 模型，并在真机上验证精度保持与推理加速效果；此外，本章还在 NVIDIA Jetson AGX Xavier 开发套件上完成平台验证、资源评估与系统展示。
 
 第五章为总结与展望。对全文研究工作进行系统总结，分析现有方法的局限性，并对后续研究方向提出展望。
 \begin{figure}[htbp]
@@ -217,9 +167,6 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
 \end{figure}
 其中，$Q$（查询）、$K$（键）和$V$（值）是由输入序列经过线性变换得到的三个向量。注意力机制通过计算查询与所有键的相似度（点积），并对结果进行缩放与softmax归一化，得到一组权重系数。这些权重随后被用于对值向量进行加权求和，从而得到最终的输出。这个过程可以直观地理解为：根据“查询”向量$Q$，从一系列“键-值”对（$K\!-\!V$）中检索信息。一个完整的Transformer层通常由一个多头注意力模块和一个前馈神经网络（Feed-Forward Network）组成，每个模块之后都跟随着残差连接（Residual Connection）和层归一化（Layer Normalization）。通过堆叠多个这样的层，Transformer能够构建起强大的深度模型。
 
-\paragraph{自注意力}
-自注意力是Transformer中的一个关键特例，其中$Q, K, V$均来自同一个输入序列。这意味着序列中的每个元素都会计算与序列中所有其他元素（包括自身）的注意力权重，从而能够动态地、内容感知地捕捉序列内部的依赖关系，无论它们相隔多远。这与CNN的局部感受野形成了鲜明对比。
-
 \paragraph{多头注意力}
 单个注意力头往往只能在一个表示子空间内学习相似性关系，表达能力受限。为同时建模不同尺度、不同语义子空间的依赖，Transformer 引入多头注意力（Multi-Head Attention, MHA）：将输入特征分别线性映射为$h$组不同的$Q,K,V$，并在每个头上独立执行缩放点积注意力，再将各头输出拼接并投影回原维度。其形式化定义为
 \begin{equation}
@@ -228,11 +175,7 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
 \begin{equation}
 \text{MultiHead}(Q,K,V)=\text{Concat}(\text{head}_1,\dots,\text{head}_h)W^O,
 \end{equation}
-其中$W_i^Q,W_i^K,W_i^V,W^O$为可学习参数矩阵。通常取每个头的维度$d_k=d_{\text{model}}/h$，使总计算量与单头注意力同阶。多头机制的优势在于：不同头可并行关注不同位置与关系模式（例如局部细粒度依赖与全局长程依赖），从而提升模型的表达能力与训练稳定性，并为下游任务提供更丰富的特征融合路径。
-
-\paragraph{交叉注意力}
-交叉注意力是连接编码器（Encoder）和解码器（Decoder）的关键桥梁，在标准的Transformer架构中至关重要。与自注意力不同，交叉注意力的$Q$向量来自解码器（Decoder）的输出，而$K$和$V$向量则来自编码器（Encoder）的最终输出。
-具体来说，在解码器的每个步骤中，交叉注意力模块允许解码器“关注”输入序列（即编码器的输出）中与当前生成任务最相关的部分。例如，在机器翻译中，当解码器要生成下一个目标词时，交叉注意力会帮助它定位到源句子中最相关的几个词。在多模态任务（如图像描述生成）或本文涉及的双目视觉任务中，交叉注意力机制同样强大。它可以让一个模态的特征（例如，左视图的特征作为查询）去查询和融合另一个模态的特征（例如，右视图的特征作为键和值），从而实现跨模态、跨视图的信息对齐与有效融合。
+其中$W_i^Q,W_i^K,W_i^V,W^O$为可学习参数矩阵，每个头的维度通常取$d_k=d_{\text{model}}/h$，使总计算量与单头同阶。不同头可并行关注不同位置与语义子空间，从而提升表达能力与训练稳定性。在双目视觉任务中，交叉注意力（Cross-Attention）以一侧视图特征作为查询$Q$、另一侧作为键$K$与值$V$，实现跨视图特征对齐与信息融合，是本文 EFEM 设计的理论基础。
 
 
 综合来看，CNN擅长捕捉局部纹理与多尺度空间特征，适合作为高效的视觉骨干网络；Transformer的注意力机制则擅长建立跨位置、跨视图的全局关联。在双目视觉任务中，两类结构相辅相成：CNN负责从左右视图中提取层次化视觉特征，交叉注意力在此基础上实现跨视图特征对齐与极线约束下的信息融合，两者相辅相成，构成双目视觉理解的常见组合框架。
@@ -241,13 +184,13 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
 人体姿态估计相关理论是理解后续双目三维姿态建模与评测口径的基础。本节首先概述人体姿态估计的任务定义与基本分类，随后介绍关键点表示方法以及二维、三维姿态估计的主要范式，最后梳理常用数据集与评价指标。上述内容共同构成后续方法设计、训练目标设定与实验分析的理论依据。
 
 \subsubsection{人体姿态估计概述}
-人体姿态估计（Human Pose Estimation, HPE）旨在从图像或视频中定位人体关键点（如肩、肘、腕、髋、膝等），并根据预定义的拓扑连接关系构建人体骨架（Pose Skeleton），为动作理解、人机交互与康复评估等任务提供结构化的运动学表示。国内高水平综述通常将其视为连接动作理解、行为分析与三维感知任务的重要中间表示\citess{li2024pose2dcn}。
+人体姿态估计（Human Pose Estimation, HPE）旨在从图像或视频中定位人体关键点（如肩、肘、腕、髋、膝等），并根据预定义的拓扑连接关系构建人体骨架（Pose Skeleton），为动作理解、人机交互与康复评估等任务提供结构化的运动学表示。
 
 从任务设定上，HPE通常可从以下两个维度进行划分：
 （1）按输出维度：分为2D姿态估计（预测关键点平面坐标$ (x,y) $）与3D姿态估计（预测空间坐标$ (x,y,z) $或根相对坐标）。
 （2）按目标数量：分为单人姿态估计（Single-person）与多人姿态估计（Multi-person）。
 
-实际应用中，多人拥挤与自/互遮挡会导致关键点可见性显著下降，光照与视角变化及复杂背景会带来跨域分布偏移，从而影响关键点定位的鲁棒性；而在3D姿态估计中，还存在典型的深度歧义性（Depth Ambiguity）问题，即不同的三维姿态可能投影为相似的二维观测，使得仅凭单目图像恢复绝对深度具有不适定性。针对遮挡条件下关键点缺失、关联歧义与人体先验利用等问题，国内也已有专门综述进行系统归纳\citess{xu2024occlusioncn}。与此同时，端侧部署还受限于算力、访存与时延预算，要求模型在精度与效率之间取得平衡。基于上述动机，本文聚焦于双目提供绝对尺度线索与轻量化网络端侧部署的统一设计。
+实际应用中，多人拥挤与自/互遮挡会导致关键点可见性显著下降，光照与视角变化及复杂背景会带来跨域分布偏移，从而影响关键点定位的鲁棒性；而在3D姿态估计中，还存在典型的深度歧义性（Depth Ambiguity）问题，即不同的三维姿态可能投影为相似的二维观测，使得仅凭单目图像恢复绝对深度具有不适定性。与此同时，端侧部署还受限于算力、访存与时延预算，要求模型在精度与效率之间取得平衡。基于上述动机，本文聚焦于双目提供绝对尺度线索与轻量化网络端侧部署的统一设计。
 
 \subsubsection{关键点表示方法}
 关键点的输出表征直接影响网络结构设计、训练目标与推理开销。中文综述普遍将关键点表示归纳为坐标回归与热图生成两类主流路线，并据此讨论精度与效率之间的折中关系；围绕二维人体姿态编解码过程中的歧义性建模与表示设计，国内也已有更细分的高水平综述工作\citess{yu2024posecodeccn}。常见形式包括：
@@ -270,19 +213,16 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
   \label{fig:heatmap_based}
 \end{figure}
 
-在坐标读出方面，传统$\arg\max$能直接取峰值坐标，但不可导；可导替代方案是soft-argmax（期望读出），例如：
-\begin{equation}
-    \hat{u}_k=\sum_{u,v} u\cdot \text{softmax}\big(\beta H_k(u,v)\big),\quad
-    \hat{v}_k=\sum_{u,v} v\cdot \text{softmax}\big(\beta H_k(u,v)\big)
-    \label{eq:softargmax}
-\end{equation}
-其中$\beta$为温度系数。该读出便于端到端训练，但对热图峰形质量更敏感。综合来看，端侧系统常采用坐标回归或中低分辨率热图+轻量上采样/引导的折中方案，以在时延与精度之间取得更优平衡。
+在坐标读出方面，传统$\arg\max$直接取峰值但不可导；soft-argmax（期望读出）便于端到端训练，但对热图峰形质量更敏感。综合来看，端侧系统常采用坐标回归或中低分辨率热图的折中方案以兼顾时延与精度。
 
 \subsubsection{二维人体姿态估计方法}
-二维多人姿态估计主要分为自顶向下与自底向上两类路线：
-\paragraph{自顶向下（Top-down）} 自顶向下先使用通用检测器得到人体边界框，再对每个框内执行单人关键点检测。该范式通常精度较高、对尺度变化更鲁棒，例如高分辨率表征学习（HRNet）在关键点定位上表现突出\citess{sun2019deep}；但整体计算量随图像中人数近似线性增长，且性能受检测器误差传递影响。
+二维多人姿态估计主要分为自顶向下与自底向上两类路线。
 
-\paragraph{自底向上（Bottom-up）} 自底向上先在整幅图像上检测所有关键点，再通过关联与分组策略将关键点组装成不同的人体实例。OpenPose提出的Part Affinity Fields（PAF）为关键点关联提供了有效表征\citess{cao2017realtime}；该范式推理开销相对稳定，不随人数显著增长，但在严重遮挡、多人拥挤及尺度差异较大时，关键点分组更容易出现歧义。
+\paragraph{自顶向下（Top-down）}
+先以目标检测器生成人体边界框，再对各裁剪区域独立执行单人关键点检测，最后将结果映射回原图坐标。代表性工作包括：SimpleBaseline\citess{xiao2018simple}以 ResNet 骨干接转置卷积进行热图解码，以简洁结构实现了竞争性精度；HRNet\citess{sun2019deep}全程维护高分辨率特征分支并并行融合多尺度信息，长期处于主流基准前列；ViTPose\citess{xu2022vitpose}验证了纯注意力骨干在关节依赖建模上的可扩展性。该范式精度高、对尺度变化鲁棒，缺点是计算量随人数近似线性增长，且最终性能受检测器质量制约。
+
+\paragraph{自底向上（Bottom-up）}
+先在整图上同步检测所有关键点，再通过后处理将其分组为各人体实例。OpenPose\citess{cao2017realtime}提出 Part Affinity Fields（PAF），在肢体区域内预测方向向量场，为关节归属提供几何依据；后续方案以关节偏移预测或图匹配进一步简化分组流程并改善稠密场景下的鲁棒性。该范式推理时延不随人数变化，适合人数动态变化的实时场景，但在密集遮挡下分组歧义较大，整体精度通常弱于自顶向下方案。
 
 \begin{figure}[h]
   \centering
@@ -303,16 +243,22 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
   \label{fig:pose_paradigms}
 \end{figure}
 
-尽管本文的输入为双目图像对，2D关键点检测与热图表征仍可作为中间监督信号或跨视图对齐先验，为后续3D恢复提供更稳定的结构约束。
+本文面向边缘端双目系统，目标场景中人数有限且需对热图进行可微操作以支持三维监督反传，因此采用自顶向下的单人热图检测路线，以高质量的二维表征为后续双目三角化提供稳定观测。
 
 \subsubsection{三维人体姿态估计方法}
-三维人体姿态估计常见方法可归纳为：
+根据输入模态与推理路径，主流三维人体姿态估计方法可归纳为以下几类。
 
-\paragraph{端到端直接估计（Direct Estimation）} 端到端直接估计直接从图像特征回归3D关节点坐标，或进一步回归人体参数化模型（如SMPL）以获得网格与姿态参数\citess{loper2015smpl}。该类方法流程简洁，但往往依赖大量3D标注数据，跨场景泛化能力易受限制。
+\paragraph{端到端直接估计（Direct Estimation）}
+直接从图像特征回归三维关节坐标，或回归 SMPL\citess{loper2015smpl}等参数化模型参数后经蒙皮变换得到关节位置。前者流程最为简洁，后者结果具有更强的解剖学约束。两者的共同局限是依赖大量三维标注，且在单目条件下深度映射本质欠定，绝对尺度误差较大，跨场景泛化能力有限。
 
-\paragraph{两阶段法 / 2D到3D提升（2D-to-3D Lifting）} 第一阶段获取2D关键点，第二阶段通过提升网络将2D坐标映射到3D空间（可结合时序信息以抑制抖动）。由于第二阶段输入维度低、计算效率高，该路线在轻量化与实时应用中非常常见\citess{martinez2017simple}。
+\paragraph{两阶段法 / 2D到3D提升（2D-to-3D Lifting）}
+先获取二维关键点，再由轻量提升网络映射到三维空间\citess{martinez2017simple}。提升网络输入维度低、推理高效，二维检测器的改进可直接带动三维质量提升。结构设计已从早期全连接网络演进至图卷积网络（显式利用骨骼运动学约束）和 Transformer（全局关节依赖建模）。单目下深度歧义依然存在，但在双目或多视图系统中可通过几何约束根本解决。
 
-\paragraph{多视图/双目视觉辅助（Stereo/Multi-view）} 引入多视角几何约束（如极线约束与三角测量）可显著缓解单目深度歧义，提高3D重建精度与鲁棒性，但对相机标定与同步提出更高要求。本文选择以双目立体几何为基础，在获得绝对尺度线索的同时，将硬件复杂度与跨视图计算控制在更可落地的范围内（详见第\ref{subsec:stereo_principle}节）。
+\paragraph{基于时序的视频方法}
+以多帧关键点序列或图像特征为输入的时序模型（RNN、时序 Transformer 等）可利用运动先验抑制抖动并恢复遮挡帧的关节位置，在 Human3.6M\citess{ionescu2014human36m}等基准上效果显著，但推理延迟随时序感受野增大，不利于低延迟边缘部署。本文聚焦单帧双目估计，暂不引入时序模块。
+
+\paragraph{多视图/双目视觉辅助（Stereo/Multi-view）}
+多标定相机通过三角测量可在几何上唯一确定关节点的绝对三维坐标，从根本上消除单目深度歧义；极线约束（详见第\ref{subsec:stereo_principle}节）进一步将跨视图匹配由二维搜索降至一维。视图数量越多约束越强，但部署成本也越高：专业动捕系统（$\geq$4 相机）精度最高、成本最大；双目方案以最低硬件成本获取深度信息，在边缘端具有明显优势，代价是观测角度受限且遮挡时几何约束退化较快。本文即采用双目路线。
 
 \begin{figure}[h]
   \centering
@@ -333,63 +279,20 @@ Transformer的核心是注意力机制，特别是缩放点积注意力（Scaled
   \label{fig:3dpose_methods}
 \end{figure}
 
-在坐标口径上，3D姿态既可表示为根相对坐标（以骨盆等根节点为原点，消除全局平移影响），也可表示为相机坐标系下的绝对坐标（保留全局位置与尺度）。在双目系统中，标定与三角测量使得绝对尺度可观测，因此本文实验默认在左相机坐标系下报告绝对 MPJPE（mm）；刚体对齐后的误差指标更侧重评估姿态形状，可作为补充分析。
+在坐标口径上，3D姿态既可表示为根相对坐标（以骨盆等根节点为原点，消除全局平移影响），也可表示为相机坐标系下的绝对坐标（保留全局位置与尺度）。在双目系统中，标定与三角测量使绝对尺度可观测，因此本文实验默认在左相机坐标系下报告绝对 MPJPE（mm）；刚体对齐后的误差指标更侧重评估姿态形状，可作为补充分析。
 
 此外，注意力机制可显式建模关节间的长距离关系，并在复杂背景中聚焦人体区域；在双目任务中，跨视图注意力（Cross-Attention）可用于左右视图特征对齐与融合，并可与几何先验（如极线约束）结合，将跨视图交互限制在更合理的搜索范围内，从而为后续三维回归提供更一致的表征。
 
 \subsubsection{数据集与评价指标}
-\paragraph{常用数据集}
-2D姿态估计领域常用公开数据集包括COCO（17个关键点，OKS-mAP评测）\citess{lin2014microsoft}与MPII（16个关键点，PCK评测）\citess{andriluka2014mpii}等；3D姿态估计领域经典数据集包括Human3.6M（室内动作捕捉标注）\citess{ionescu2014human36m}，以及更贴近真实场景的3DPW（in-the-wild）\citess{vonmarcard2018recovering}。在本文实验设置中，RT-Pose数据集用于主要训练与评测\citess{ho2024rt}，MADS数据集用于跨数据集泛化验证\citess{zhang2017mads}。
+本文所用数据集及其在三维人体姿态估计领域中的地位已在第~\ref{subsec:related_datasets}节中详细介绍，此处不再重复，以下重点说明关节点定义标准与评价指标。
 
 \paragraph{人体关节点定义与标准}
-不同数据集在关节点数量与位置上存在差异：COCO定义17个关节点\citess{lin2014microsoft}，MPII定义16个\citess{andriluka2014mpii}，Human3.6M常用17个核心点\citess{ionescu2014human36m}。在3D姿态表示中，通常以骨盆（Pelvis）为根节点，所有关节点坐标采用根相对（root-relative）方式表示，消除全局位置变化的影响，使模型专注于姿态本身。图~\ref{F.csu_keypoints}展示了典型的人体骨架关节点布局，三套标准的对照关系见表~\ref{tab:pose_comparison}。
-
-\begin{figure}[hbt]
-\centering
-\includegraphics[width=0.8\textwidth]{images/keypoints.png}
-\caption{人体关节点骨架}
-\label{F.csu_keypoints}
-\end{figure}
-
-
-\begin{table}[ht]
-\centering
-\caption{常用人体关节点定义对照}
-\label{tab:pose_comparison}
-\small
-\begin{tabular}{@{}clclcl@{}}
-\toprule
-Idx & COCO (17) & Idx & MPII (16) & Idx & Human3.6M (17) \\ \midrule
-0  & Nose (鼻子)       & 0  & R-Ankle (右踝)   & 0  & Pelvis (骨盆/中心) \\
-1  & L-Eye (左眼)      & 1  & R-Knee (右膝)    & 1  & R-Hip (右臀)      \\
-2  & R-Eye (右眼)      & 2  & R-Hip (右臀)     & 2  & R-Knee (右膝)     \\
-3  & L-Ear (左耳)      & 3  & L-Hip (左臀)     & 3  & R-Ankle (右踝)    \\
-4  & R-Ear (右耳)      & 4  & L-Knee (左膝)    & 4  & L-Hip (左臀)      \\
-5  & L-Shoulder (左肩) & 5  & L-Ankle (左踝)   & 5  & L-Knee (左膝)     \\
-6  & R-Shoulder (右肩) & 6  & Pelvis (骨盆)    & 6  & L-Ankle (左踝)    \\
-7  & L-Elbow (左肘)    & 7  & Thorax (胸部)    & 7  & Torso (躯干)      \\
-8  & R-Elbow (右肘)    & 8  & Upper Neck (颈)  & 8  & Neck (颈部)       \\
-9  & L-Wrist (左腕)    & 9  & Head Top (头顶)  & 9  & Nose (鼻子/头)    \\
-10 & R-Wrist (右腕)    & 10 & L-Wrist (左腕)   & 10 & Head (头顶)       \\
-11 & L-Hip (左臀)      & 11 & L-Elbow (左肘)   & 11 & L-Shoulder (左肩) \\
-12 & R-Hip (右臀)      & 12 & L-Shoulder (左肩) & 12 & L-Elbow (左肘)    \\
-13 & L-Knee (左膝)     & 13 & R-Shoulder (右肩) & 13 & L-Wrist (左腕)    \\
-14 & R-Knee (右膝)     & 14 & R-Elbow (右肘)   & 14 & R-Shoulder (右肩) \\
-15 & L-Ankle (左踝)    & 15 & R-Wrist (右腕)   & 15 & R-Elbow (右肘)    \\
-16 & R-Ankle (右踝)    & -- & --               & 16 & R-Wrist (右腕)    \\ \bottomrule
-\end{tabular}
-\end{table}
+不同数据集在关节点数量与位置上存在差异：COCO 定义17个关节点\citess{lin2014microsoft}，MPII 定义16个\citess{andriluka2014mpii}，Human3.6M 常用17个核心点\citess{ionescu2014human36m}。在3D姿态表示中，通常以骨盆（Pelvis）为根节点，所有关节点坐标采用根相对（root-relative）方式表示，以消除全局位置变化的影响。
 
 \paragraph{评价指标}
 人体姿态估计的评价指标需要区分二维与三维两类任务：前者关注关键点定位或实例检测质量，后者关注恢复出的三维关节点坐标误差。本文后续实验围绕双目三维姿态估计展开，因此以三维指标为主。
 
-二维人体姿态估计常用的评价指标主要包括以下三类：
-
-1）PCK（Percentage of Correct Keypoints）：统计预测关键点落在归一化阈值范围内的比例，阈值通常依据头部尺寸或躯干长度等人体尺度进行归一化，MPII 等数据集常采用该指标\citess{andriluka2014mpii}。
-
-2）OKS（Object Keypoint Similarity）：综合考虑关键点像素误差、可见性以及不同关键点的标注不确定性，用于细致衡量预测关键点与真实关键点之间的一致程度\citess{lin2014microsoft}。
-
-3）mAP（mean Average Precision）：在 COCO 等检测式评测中，通常基于不同 OKS 阈值统计平均精度，用于综合评估多人场景下关键点检测与实例关联的整体表现\citess{lin2014microsoft}。
+二维指标主要包括 PCK（关键点落在归一化阈值内的比例）\citess{andriluka2014mpii}、OKS（综合误差与可见性的相似度）和基于 OKS 的 mAP\citess{lin2014microsoft}；本文以三维指标为主，2D 指标仅作参考。
 
 3D姿态估计指标
 三维人体姿态估计更关注恢复结果在真实三维空间中的定位误差。其中，平均每关节位置误差（Mean Per Joint Position Error, MPJPE）是最常用的核心指标。它衡量的是预测三维关节点坐标与真值三维关节点坐标之间的平均欧氏距离。如公式\ref{eq:mpjpe}所示，对于一个包含$N$个关节点的姿态，其计算方式为：
@@ -410,11 +313,11 @@ Idx & COCO (17) & Idx & MPII (16) & Idx & Human3.6M (17) \\ \midrule
 \subsubsection{双目立体视觉成像模型}
 \label{subsec:stereo_principle}
 在双目系统中，两台相机从不同视角同时观测同一场景，可利用左右视图之间的几何约束恢复场景深度信息。设空间点在世界坐标系中的齐次坐标为$\mathbf{X}=[X,Y,Z,1]^\top$，其在左/右相机成像平面上的齐次像素坐标分别为$\mathbf{x}_l=[u_l,v_l,1]^\top$与$\mathbf{x}_r=[u_r,v_r,1]^\top$，则在针孔相机模型下有：
-\begin{equation}
-s_l \mathbf{x}_l = \mathbf{K}_l \left[\mathbf{R}_l \ \mathbf{t}_l\right]\mathbf{X}, \quad
-s_r \mathbf{x}_r = \mathbf{K}_r \left[\mathbf{R}_r \ \mathbf{t}_r\right]\mathbf{X}
+\begin{align}
+s_l \mathbf{x}_l &= \mathbf{K}_l \left[\mathbf{R}_l \ \mathbf{t}_l\right]\mathbf{X},\nonumber\\
+s_r \mathbf{x}_r &= \mathbf{K}_r \left[\mathbf{R}_r \ \mathbf{t}_r\right]\mathbf{X}
 \label{eq:stereo_projection}
-\end{equation}
+\end{align}
 其中，$\mathbf{K}$为相机内参矩阵（包含焦距与主点），$\left[\mathbf{R}\ \mathbf{t}\right]$为外参（描述相机坐标系相对世界坐标系的旋转和平移），$s$为尺度因子。双目系统通常通过标定获得两台相机的内参及它们之间的相对位姿，其中两相机光心之间的距离称为基线（Baseline）$B$。
 
 \subsubsection{极线几何与立体校正}
@@ -422,7 +325,7 @@ s_r \mathbf{x}_r = \mathbf{K}_r \left[\mathbf{R}_r \ \mathbf{t}_r\right]\mathbf{
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.8\textwidth]{images/EpipolarGeometry.png}
+  \includegraphics[width=0.7\textwidth]{images/EpipolarGeometry.png}
 \caption{双目对极几何}
   \label{fig:epipolar_geometry}
 \end{figure}
@@ -461,7 +364,7 @@ Z = \frac{f B}{d}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.5\textwidth]{images/triangulation.png}
+\includegraphics[width=0.4\textwidth]{images/triangulation.png}
 \caption{双目视差与三角测量}
 \label{fig:triangulation}
 \end{figure}
@@ -516,19 +419,7 @@ z = \left\lfloor q_{\min} - \frac{x_{\min}}{s}\right\rceil
 \end{equation}
 在实践中常采用逐通道（per-channel）权重量化与量化感知训练减小精度损失，并通过校准（calibration）合理选择动态范围以避免过多截断。量化还可显著减少模型存储：$b$比特量化后存储量约为FP32的$b/32$倍（即$S_b = \frac{b}{8}N_p$字节）。
 
-剪枝方面，结构化剪枝通过移除冗余通道或注意力头，在保证可部署性的前提下减少计算量。由式\ref{eq:conv_cost}可知，通道剪枝带来的理论加速可写为：
-\begin{equation}
-\frac{\text{Cost}^\prime}{\text{Cost}} \approx \frac{C^\prime_{in} C^\prime_{out}}{C_{in} C_{out}}
-\label{eq:pruning_speedup}
-\end{equation}
-当输入与输出通道同时缩减时可获得更显著的降幅。非结构化稀疏在端侧往往难以获得稳定加速，因此更常采用结构化方案并配合编译器优化。
-
-知识蒸馏通过教师网络为学生网络提供"软目标"与中间特征约束，在不增加推理开销的前提下提升小模型精度~\citess{hinton2015distilling,romero2015fitnets,zagoruyko2017attention}。以温度蒸馏为例，典型损失可写为：
-\begin{equation}
-\mathcal{L} = (1-\lambda)\mathcal{L}_{task} + \lambda T^2\mathrm{KL}\!\left(\mathrm{softmax}\!\left(\frac{\mathbf{z}_t}{T}\right)\ \middle\|\ \mathrm{softmax}\!\left(\frac{\mathbf{z}_s}{T}\right)\right)
-\label{eq:kd_loss}
-\end{equation}
-其中$\mathbf{z}_t,\mathbf{z}_s$为教师与学生的logits，$T$为温度系数，$\lambda$为权衡系数。对于姿态回归任务，也可采用特征蒸馏或分布蒸馏等方式提升鲁棒性。
+剪枝通过移除冗余通道或注意力头减少计算量。端侧更适合结构化剪枝方案（可获稳定加速），非结构化稀疏难以在实际部署中兑现理论收益。知识蒸馏以教师网络提供软目标或中间特征约束，在不增加推理开销的前提下提升小模型精度\citess{hinton2015distilling,romero2015fitnets}，可作为量化或剪枝的精度补偿手段。
 
 \subsubsection{端侧部署工程优化}
 结构轻量化与模型压缩确定了网络的理论效率上限，而端侧实际推理性能还取决于算子与硬件的匹配程度。端侧推理的瓶颈往往不仅来自算术计算量，还来自内存带宽与访存模式：频繁的特征拼接与大体积张量读写会显著抬高时延与能耗，双目任务中代价体易导致内存峰值过高，需优先以2D算子替代高维操作。工程层面应结合算子融合（Operator Fusion）、张量布局优化与内存复用等手段，尽量避免大规模3D卷积、超大矩阵乘等端侧不友好算子，才能将理论压缩收益转化为稳定的端侧加速。综合来看，轻量化网络设计需要在结构设计、压缩策略与部署工程三个层面协同优化，才能在资源受限设备上实现可用的双目三维人体姿态估计性能。
@@ -724,7 +615,10 @@ Z\mathbf{p}=\mathbf{K}\mathbf{P}.
 \paragraph{输入压缩与查询-键构建}
 设左右分支特征为$\mathbf{F}_l,\mathbf{F}_r\in\mathbb{R}^{C\times H\times W}$。EFEM 以右分支当前位置为锚点沿极线发起匹配，并以左分支特征作为可检索的跨视图记忆。为构造沿极线的交叉注意力，先通过轻量投影得到查询、键和值：
 \begin{equation}
-\mathbf{q}=\phi_q(\mathbf{F}_r),\quad \mathbf{k}=\phi_k(\mathbf{F}_l),\quad \mathbf{v}=\phi_v(\mathbf{F}_l),\quad \mathbf{q},\mathbf{k},\mathbf{v}\in\mathbb{R}^{C'\times H\times W},
+\begin{split}
+\mathbf{q}=\phi_q(\mathbf{F}_r),\quad \mathbf{k}=\phi_k(\mathbf{F}_l),\quad \mathbf{v}=\phi_v(\mathbf{F}_l),\\
+\mathbf{q},\mathbf{k},\mathbf{v}\in\mathbb{R}^{C'\times H\times W},
+\end{split}
 \label{eq:efem_proj}
 \end{equation}
 其中$\phi_q,\phi_k,\phi_v$为$1\times1$卷积+归一化（可选分组卷积），分别将右分支特征映射为查询向量，并将左分支特征映射为键和值，以在控制计算开销的同时对齐跨视图表征维度。
@@ -774,55 +668,38 @@ EFEM 的有效性建立在三个前提上。第一，输入双目图像需要经
 在获得跨视图增强后的二维表征之后，第三步是把双视图观测稳定地转化为三维监督信号。可微加权三角化姿态求解器的核心目标是：在双目视图条件下，将左/右视图的二维关键点观测与相机模型融合为三维关节坐标，并在深度学习框架中保持端到端可训练性。为此，本节将传统双目三角化改写为可微的加权最小二乘问题，并引入由特征图预测的视图置信度权重，以增强在遮挡与误检情况下的鲁棒性。
 
 \paragraph{设计目标与总体思路}
-在深度学习框架下直接使用传统三角化存在两个关键问题：其一，二维关键点检测存在噪声，遮挡、模糊或复杂姿态会带来较大误差；其二，若通过$\arg\max$从热力图提取二维坐标，则三维监督信号无法反向传播至热力图网络。若将热力图峰值位置作为二维观测
-\begin{equation}
-(u_{c,j},v_{c,j})=\arg\max\limits_{(u,v)\in\Omega} H_{c,j}(u,v),
-\label{eq:pdrm_argmax}
-\end{equation}
-其中$c\in\{l,r\}$表示左/右视图，$H_{c,j}=\phi_h(\mathbf{F}_c)$为由特征图$\mathbf{F}_c$经热力图头$\phi_h(\cdot)$预测得到的关节热力图。由于$(u_{c,j},v_{c,j})$是离散索引，对$H_{c,j}$几乎处处不可导，三维误差难以有效反向更新关键点热力图分布。为此，本文采用三项协同设计：其一，使用 soft-argmax（见式\eqref{eq:pdrm_softarg_u}--\eqref{eq:pdrm_softarg_v}）提取连续二维坐标；其二，为左右视图分配可学习置信度权重；其三，将双目三角化统一为加权最小二乘问题，并通过闭式求解恢复三维点，从而实现端到端训练。
+在深度学习框架下直接使用传统三角化存在两个关键问题：其一，二维关键点检测存在噪声，遮挡、模糊或复杂姿态会带来较大误差；其二，若通过$\arg\max$从热力图提取二维坐标，则$(u_{c,j},v_{c,j})$为离散索引，对热力图$H_{c,j}$几乎处处不可导，三维监督误差难以有效回传至热力图网络。为此，本文采用三项协同设计：其一，使用 soft-argmax（见式\eqref{eq:pdrm_softarg_u}--\eqref{eq:pdrm_softarg_v}）提取连续二维坐标；其二，为左右视图分配可学习置信度权重；其三，将双目三角化统一为加权最小二乘问题，并通过闭式求解恢复三维点，从而实现端到端训练。
 其中，双目条件下反齐次化后的绝对尺度由相机标定参数确定，与第二章所讨论的单目尺度模糊问题不同。
 
 \paragraph{与热力图的可微连接}
 首先对热力图进行二维归一化，得到概率分布
 \begin{equation}
-p_{c,j}(u,v)=\frac{\exp(H_{c,j}(u,v))}{\sum\limits_{(u',v')\in\Omega}\exp(H_{c,j}(u',v'))}
+p_{c,j}(u,v)=\frac{\exp(H_{c,j}(u,v))}{\sum\limits_{(u',v')\in\Omega}\exp(H_{c,j}(u',v'))},
 \label{eq:pdrm_softmax2d}
 \end{equation}
 其中$\Omega$为热力图的离散像素集合。soft-argmax 对应的二维坐标期望为
 \begin{align}
-u_{c,j}&=\sum\limits_{(u,v)\in\Omega} u\cdot p_{c,j}(u,v),
-\label{eq:pdrm_softarg_u}\\
-v_{c,j}&=\sum\limits_{(u,v)\in\Omega} v\cdot p_{c,j}(u,v).
+u_{c,j}&=\sum\limits_{(u,v)\in\Omega} u\cdot p_{c,j}(u,v);\label{eq:pdrm_softarg_u}\\
+v_{c,j}&=\sum\limits_{(u,v)\in\Omega} v\cdot p_{c,j}(u,v),
 \label{eq:pdrm_softarg_v}
 \end{align}
 由于 softmax 与加权求和均为可微操作，故$\mathbf{x}_{c,j}$关于热力图$H_{c,j}$可导，从而三维监督损失能够端到端反向传播。本文在此选择 soft-argmax 而非离散 $\arg\max$，核心并不在于得到”更平滑”的二维坐标本身，而在于保留”热力图分布$\rightarrow$二维观测$\rightarrow$三维误差”的连续梯度链路。训练与推理阶段均采用 soft-argmax 提取二维坐标，以保持训练-推理的一致性，避免因坐标提取方式不同引入分布偏移。
 
 \paragraph{投影约束与线性化}
-设投影矩阵 $\mathbf{P}_c\in\mathbb{R}^{3\times4}$ 的三行分别为
+设投影矩阵$\mathbf{P}_c\in\mathbb{R}^{3\times4}$的三行分别记为$\mathbf{p}_{1,c}^\top,\mathbf{p}_{2,c}^\top,\mathbf{p}_{3,c}^\top$，根据透视投影模型，在齐次坐标下有
 \begin{equation}
-\mathbf{P}_c=
-\begin{bmatrix}
-\mathbf{p}_{1,c}^\top\\
-\mathbf{p}_{2,c}^\top\\
-\mathbf{p}_{3,c}^\top
-\end{bmatrix}.
-\label{eq:pdrm_P_rows}
-\end{equation}
-根据透视投影模型，在齐次坐标下有
-\begin{equation}
-\tilde{\mathbf{x}}_{c,j}\sim\mathbf{P}_c\tilde{\mathbf{X}}_j
+\tilde{\mathbf{x}}_{c,j}\sim\mathbf{P}_c\tilde{\mathbf{X}}_j,
 \label{eq:pdrm_proj}
 \end{equation}
-其中“$\sim$”表示两向量仅差一个尺度因子。为消除尺度因子，引入叉乘约束
+其中”$\sim$”表示两向量仅差一个尺度因子。为消除尺度因子，引入叉乘约束
 \begin{equation}
-\tilde{\mathbf{x}}_{c,j}\times(\mathbf{P}_c\tilde{\mathbf{X}}_j)=0
+\tilde{\mathbf{x}}_{c,j}\times(\mathbf{P}_c\tilde{\mathbf{X}}_j)=0,
 \label{eq:pdrm_cross}
 \end{equation}
 展开后可得两条线性独立方程：
 \begin{align}
-(u_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{1,c}^\top)\tilde{\mathbf{X}}_j&=0
-\label{eq:pdrm_linear_u}\\
-(v_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{2,c}^\top)\tilde{\mathbf{X}}_j&=0
+(u_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{1,c}^\top)\tilde{\mathbf{X}}_j&=0;\label{eq:pdrm_linear_u}\\
+(v_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{2,c}^\top)\tilde{\mathbf{X}}_j&=0,
 \label{eq:pdrm_linear_v}
 \end{align}
 因此，第$c$个视图对关节$j$提供两个线性约束，可写为$\mathbf{A}_{c,j}\tilde{\mathbf{X}}_j=0$，其中
@@ -831,7 +708,7 @@ v_{c,j}&=\sum\limits_{(u,v)\in\Omega} v\cdot p_{c,j}(u,v).
 \begin{bmatrix}
 u_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{1,c}^\top\\
 v_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{2,c}^\top
-\end{bmatrix}
+\end{bmatrix}.
 \label{eq:pdrm_Acj}
 \end{equation}
 
@@ -844,71 +721,46 @@ v_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{2,c}^\top
 \mathbf{A}_{l,j}\\
 \mathbf{A}_{r,j}
 \end{bmatrix}
-\in\mathbb{R}^{4\times4}
+\in\mathbb{R}^{4\times4},
 \label{eq:pdrm_Aj}
 \end{equation}
 由于二维关键点定位误差、遮挡误检以及相机标定/同步误差等噪声因素，左右两视图给出的线性约束往往无法同时被严格满足，即一般不存在使$\mathbf{A}_j\tilde{\mathbf{X}}_j=\mathbf{0}$成立的非零精确解，因此转化为最小二乘问题：
 \begin{equation}
-\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{A}_j\tilde{\mathbf{X}}_j\|^2
+\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{A}_j\tilde{\mathbf{X}}_j\|^2,
 \label{eq:pdrm_ls}
 \end{equation}
-\noindent 其中$\|\tilde{\mathbf{X}}_j\|=1$用于消除齐次表示的比例自由度，同时避免最小二乘退化到零解。
+其中$\|\tilde{\mathbf{X}}_j\|=1$用于消除齐次表示的比例自由度，同时避免最小二乘退化到零解。
 
 \paragraph{加权最小二乘形式}
 为提高对噪声的鲁棒性，本文对左右视图引入可学习置信度权重$w_{c,j}$，以适应双目观测质量常常不对称的情况。权重由特征图$\mathbf{F}_c$经置信度预测头$\phi_w(\cdot)$直接预测，其中该预测头对每个关节输出一个标量，共输出$J$个置信度 logit；随后通过 softplus 映射保证权重为正且数值稳定：
 \begin{equation}
-w_{c,j}=\mathrm{softplus}(\hat{s}_{c,j})+\epsilon
+w_{c,j}=\mathrm{softplus}(\hat{s}_{c,j})+\epsilon,
 \label{eq:pdrm_w_def}
 \end{equation}
 构造对角权重矩阵
 \begin{equation}
 \mathbf{W}_j=
-\mathrm{diag}(\sqrt{w_{l,j}},\sqrt{w_{l,j}},\sqrt{w_{r,j}},\sqrt{w_{r,j}})
+\mathrm{diag}(\sqrt{w_{l,j}},\sqrt{w_{l,j}},\sqrt{w_{r,j}},\sqrt{w_{r,j}}),
 \label{eq:pdrm_Wj}
 \end{equation}
-\noindent 其中每个$w_{c,j}$在对角线上重复两次，是因为每个视图对同一关节提供两条线性约束；采用$\sqrt{w_{c,j}}$则可使目标函数写成标准的加权残差平方和形式。加权线性系统为
+其中每个$w_{c,j}$在对角线上重复两次，对应同一视图的两条线性约束；$\sqrt{w_{c,j}}$使目标函数等价于对左右视图残差施加视图级置信度加权。本文采用视图级而非逐方程独立权重，是因为同一视图的$u$、$v$投影约束通常共享同一可信度来源（如遮挡、模糊或误检）。令$\mathbf{B}_j=\mathbf{W}_j\mathbf{A}_j$，优化问题为
 \begin{equation}
-\mathbf{B}_j=\mathbf{W}_j\mathbf{A}_j
-\label{eq:pdrm_Bj}
-\end{equation}
-此时目标函数可展开为
-\begin{equation}
-\|\mathbf{B}_j\tilde{\mathbf{X}}_j\|^2=
-w_{l,j}\|\mathbf{A}_{l,j}\tilde{\mathbf{X}}_j\|^2+
-w_{r,j}\|\mathbf{A}_{r,j}\tilde{\mathbf{X}}_j\|^2
-\label{eq:pdrm_wls_expand}
-\end{equation}
-从而可直观看出$\sqrt{w_{c,j}}$进入对角阵后，优化目标等价于对左右视图残差施加视图级置信度加权。本文采用视图级而非更细粒度的逐方程独立权重，是因为对同一视图同一关节而言，$u$ 与 $v$ 两个投影约束通常共享同一观测可信度来源，如遮挡、模糊或误检。
-优化问题变为
-\begin{equation}
-\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{B}_j\tilde{\mathbf{X}}_j\|^2
+\min_{\|\tilde{\mathbf{X}}_j\|=1}\|\mathbf{B}_j\tilde{\mathbf{X}}_j\|^2.
 \label{eq:pdrm_wls}
 \end{equation}
 
 \paragraph{特征值求解}
-上述加权最小二乘问题具有闭式解。由于约束$\|\tilde{\mathbf{X}}_j\|=1$固定了齐次向量的尺度，可将目标函数转写为 Rayleigh 商并求得与最小奇异值右奇异向量等价的最优解。
-展开目标函数：
+上述加权最小二乘问题具有闭式解。记$\mathbf{M}_j=\mathbf{B}_j^\top\mathbf{B}_j$，则
 \begin{equation}
-\|\mathbf{B}_j\tilde{\mathbf{X}}_j\|^2=
-\tilde{\mathbf{X}}_j^\top(\mathbf{B}_j^\top\mathbf{B}_j)\tilde{\mathbf{X}}_j
+\|\mathbf{B}_j\tilde{\mathbf{X}}_j\|^2=\tilde{\mathbf{X}}_j^\top\mathbf{M}_j\tilde{\mathbf{X}}_j,
 \label{eq:pdrm_quadratic}
 \end{equation}
-记
+约束$\|\tilde{\mathbf{X}}_j\|=1$下的最小化即 Rayleigh 商问题，根据 Rayleigh 商定理，最优解为$\mathbf{M}_j$最小特征值对应的特征向量，即
 \begin{equation}
-\mathbf{M}_j=\mathbf{B}_j^\top\mathbf{B}_j
-\label{eq:pdrm_Mj}
-\end{equation}
-则问题转化为
-\begin{equation}
-\min_{\|\tilde{\mathbf{X}}_j\|=1}\tilde{\mathbf{X}}_j^\top\mathbf{M}_j\tilde{\mathbf{X}}_j
-\label{eq:pdrm_rayleigh}
-\end{equation}
-根据 Rayleigh 商定理，$\tilde{\mathbf{X}}_j^\top\mathbf{M}_j\tilde{\mathbf{X}}_j$在$\|\tilde{\mathbf{X}}_j\|=1$约束下取最小值当且仅当$\tilde{\mathbf{X}}_j$为$\mathbf{M}_j$最小特征值对应的特征向量，即
-\begin{equation}
-\mathbf{M}_j\tilde{\mathbf{X}}_j=\lambda_{\min}\tilde{\mathbf{X}}_j
+\mathbf{M}_j\tilde{\mathbf{X}}_j=\lambda_{\min}\tilde{\mathbf{X}}_j,
 \label{eq:pdrm_eig}
 \end{equation}
-\noindent 该求解与经典 DLT 三角化中“取$\mathbf{B}_j$的最小奇异值对应右奇异向量”的 SVD 解法在数学上等价；但若显式构造$\mathbf{M}_j=\mathbf{B}_j^\top\mathbf{B}_j$再做特征分解，矩阵条件数会平方，因此数值稳定性通常不如直接对$\mathbf{B}_j$做 SVD。考虑到双目场景下$\mathbf{B}_j$仅为$4\times4$小矩阵，两者计算开销相近，工程实现中可直接调用 SVD 以获得更稳健的求解。本文保留这一小规模闭式几何求解的目的，在于避免重新退回到“先稠密估深、再关节采样”的重型级联路径，从而以更低代价保留显式投影约束。
+该求解与经典 DLT 三角化中”取$\mathbf{B}_j$的最小奇异值对应右奇异向量”的 SVD 解法在数学上等价；但若显式构造$\mathbf{M}_j=\mathbf{B}_j^\top\mathbf{B}_j$再做特征分解，矩阵条件数会平方，因此数值稳定性通常不如直接对$\mathbf{B}_j$做 SVD。考虑到双目场景下$\mathbf{B}_j$仅为$4\times4$小矩阵，两者计算开销相近，工程实现中可直接调用 SVD 以获得更稳健的求解。本文保留这一小规模闭式几何求解的目的，在于避免重新退回到“先稠密估深、再关节采样”的重型级联路径，从而以更低代价保留显式投影约束。
 
 \paragraph{反齐次化}
 得到齐次解$\tilde{\mathbf{X}}_j=[X_h,Y_h,Z_h,W_h]^\top$后，欧式三维坐标为
@@ -919,7 +771,7 @@ w_{r,j}\|\mathbf{A}_{r,j}\tilde{\mathbf{X}}_j\|^2
 X_h\\
 Y_h\\
 Z_h
-\end{bmatrix}
+\end{bmatrix}.
 \label{eq:pdrm_dehom}
 \end{equation}
 
@@ -938,15 +790,17 @@ Z_h
     \FOR{$j\gets 1\cdots J$}
       \FOR{each $c\in\{l,r\}$}
         \STATE 二维归一化：$p_{c,j}(u,v)\gets \frac{\exp(H_{c,j}(u,v))}{\sum_{(u',v')\in\Omega}\exp(H_{c,j}(u',v'))}$
-        \STATE soft-argmax：$u_{c,j}\gets \sum_{(u,v)\in\Omega}u\cdot p_{c,j}(u,v)$，$v_{c,j}\gets \sum_{(u,v)\in\Omega}v\cdot p_{c,j}(u,v)$
+        \STATE soft-argmax：$u_{c,j}\gets \sum_{(u,v)\in\Omega}u\cdot p_{c,j}(u,v)$
+        \STATE \hspace{4.5em}$v_{c,j}\gets \sum_{(u,v)\in\Omega}v\cdot p_{c,j}(u,v)$
         \STATE 构造线性约束：$\mathbf{A}_{c,j}\gets\begin{bmatrix}
           u_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{1,c}^\top\\
           v_{c,j}\mathbf{p}_{3,c}^\top-\mathbf{p}_{2,c}^\top
         \end{bmatrix}$
       \ENDFOR
-      \STATE 堆叠：$\mathbf{A}_j\gets \begin{bmatrix}\mathbf{A}_{l,j}\\ \mathbf{A}_{r,j}\end{bmatrix}$，$\mathbf{W}_j\gets \mathrm{diag}(\sqrt{w_{l,j}},\sqrt{w_{l,j}},\sqrt{w_{r,j}},\sqrt{w_{r,j}})$
+      \STATE 堆叠：$\mathbf{A}_j\gets \begin{bmatrix}\mathbf{A}_{l,j}\\ \mathbf{A}_{r,j}\end{bmatrix}$
+      \STATE \hspace{2.5em}$\mathbf{W}_j\gets \mathrm{diag}(\sqrt{w_{l,j}},\sqrt{w_{l,j}},\sqrt{w_{r,j}},\sqrt{w_{r,j}})$
       \STATE 加权：$\mathbf{B}_j\gets \mathbf{W}_j\mathbf{A}_j$，$\mathbf{M}_j\gets \mathbf{B}_j^\top\mathbf{B}_j$
-      \STATE 闭式求解：$\tilde{\mathbf{X}}_j\gets \mathrm{eigvec}(\mathbf{M}_j,\,\lambda_{\min})$ \COMMENT{等价于取$\mathbf{B}_j$最小奇异值对应右奇异向量}
+      \STATE 闭式求解：$\tilde{\mathbf{X}}_j\gets \mathrm{eigvec}(\mathbf{M}_j,\,\lambda_{\min})$ \COMMENT{等价于$\mathbf{B}_j$最小奇异值右奇异向量}
       \STATE 反齐次化：$\mathbf{X}_j\gets [X_h/W_h,\;Y_h/W_h,\;Z_h/W_h]^\top$
     \ENDFOR
   \end{algorithmic}
@@ -1051,7 +905,7 @@ Z_h
 除报告测试集平均时延外，进一步统计人数从 1 到 10 的场景下端到端推理时延变化，用于评估多人可扩展性（输入 $640\times480$、Xiaomi\,14/MNN/FP16/4线程 协议保持不变）。
 \subsubsection{实验结果} 
 \paragraph{对比协议}
-本文将对比方法划分为两类：一类是仅使用左视图$I_l$作为输入的单目方法，包括 Simple Baseline\citess{martinez2017simple}、JointFormer\citess{lutz2022jointformer} 与 RTMW3D\citess{jiang2024rtmw}；另一类是使用双目输入$(I_l,I_r)$、遵循“稠密深度先验 + 关节回代”流程的双目基线，包括 MobiDepthPose\citess{zhang2022mobidepth}、DMCPose\citess{zhang2024dmcpose}、RTMO\citess{lu2024rtmo}+SGBM 与 RTMO\citess{lu2024rtmo}+MobileStereoNet\citess{shamsafar2022mobilestereonet}。所有对比方法均在相同数据划分下微调与评测，其中 RTMW3D 主要作为相同划分下的强表征参考，用于说明本文方法在端侧可部署约束下的精度--效率权衡。
+本文将对比方法划分为两类：一类是仅使用左视图$I_l$作为输入的单目方法，包括 Simple Baseline\citess{martinez2017simple}、JointFormer\citess{lutz2022jointformer} 与 RTMW3D\citess{jiang2024rtmw}；另一类是使用双目输入$(I_l,I_r)$、遵循“稠密深度先验 + 关节回代”流程的双目基线，包括 MobiDepthPose\citess{zhang2022mobidepth}、DMCPose\citess{zhang2024dmcpose}、级联基线1\citess{lu2024rtmo,hirschmuller2005accurate} 与 级联基线2\citess{lu2024rtmo,shamsafar2022mobilestereonet}，其中级联基线1为 RTMO 与 SGBM（传统立体匹配）的两阶段级联方案，级联基线2为 RTMO 与 MobileStereoNet（学习式立体匹配）的两阶段级联方案。所有对比方法均在相同数据划分下微调与评测，其中 RTMW3D 主要作为相同划分下的强表征参考，用于说明本文方法在端侧可部署约束下的精度--效率权衡。
 
 \paragraph{实验对比}
 \begin{table}[htbp]
@@ -1077,8 +931,8 @@ RTMW3D~\citess{jiang2024rtmw} & 298.3 & 292.8 & 327.4 & 331.2 & 287.0 & 307.3 & 
 \midrule
 MobiDepthPose~\citess{zhang2022mobidepth} & 221.3 & 215.7 & 207.5 & 208.9 & 223.3 & 215.3 & 7.27 & 10.36 \\
 DMCPose~\citess{zhang2024dmcpose} & 187.9 & 189.3 & 195.7 & 209.8 & 201.4 & 196.8 & 27.10 & 41.10 \\
-RTMO~\citess{lu2024rtmo}+SGBM$^\dagger$~\citess{hirschmuller2005accurate} & 205.0 & 208.0 & 219.7 & 224.6 & 202.4 & 211.9 & 9.80 & 12.13 \\
-RTMO~\citess{lu2024rtmo}+MobileStereoNet~\citess{shamsafar2022mobilestereonet} & 193.6 & 187.3 & 208.9 & 219.6 & 200.5 & 202.0 & 12.09 & 116.12 \\
+级联基线1$^\dagger$~\citess{lu2024rtmo,hirschmuller2005accurate} & 205.0 & 208.0 & 219.7 & 224.6 & 202.4 & 211.9 & 9.80 & 12.13 \\
+级联基线2~\citess{lu2024rtmo,shamsafar2022mobilestereonet} & 193.6 & 187.3 & 208.9 & 219.6 & 200.5 & 202.0 & 12.09 & 116.12 \\
 \midrule
 本文方法 & 162.3 & 156.9 & 163.9 & 177.4 & 132.6 & 158.6 & 11.70 & 13.93 \\
 \bottomrule
@@ -1086,9 +940,9 @@ RTMO~\citess{lu2024rtmo}+MobileStereoNet~\citess{shamsafar2022mobilestereonet} &
 }
 \end{table}
 
-表~\ref{tab:rtpose_benchmark} 给出了 RT-Pose 上的对比结果，其中 DMCPose 数值取自 StereoMulti3DPose 工程内按相同 RT-Pose 划分完成的复现实验。在这一真实复杂双目场景基准上，本文方法的平均指标达到 $158.6$\,mm，显著优于单目基线与各类双目基线：相较于最佳单目方法 RTMW3D（$307.3$\,mm），绝对误差降低 $148.7$\,mm；相较于当前结果中最优的双目基线 DMCPose（$196.8$\,mm），绝对误差降低 $38.2$\,mm。进一步地，在坐姿等遮挡更强、远距离小视差更敏感的场景下，级联范式易受稠密深度误匹配与关节采样不稳定影响（例如 RTMO+MobileStereoNet 的 $200.5$\,mm 降至本文方法的 $132.6$\,mm，降低 $67.9$\,mm），而本文通过端到端的双目特征交互与可微几何求解将计算集中于关节相关区域，从而获得更稳定的三维定位精度。
+表~\ref{tab:rtpose_benchmark} 给出了 RT-Pose 上的对比结果，其中 DMCPose模型是基于论文复现。在这一真实复杂双目场景基准上，本文方法的平均指标达到 $158.6$\,mm，显著优于单目基线与各类双目基线：相较于最佳单目方法 RTMW3D（$307.3$\,mm），绝对误差降低 $148.7$\,mm；相较于当前结果中最优的双目基线 DMCPose（$196.8$\,mm），绝对误差降低 $38.2$\,mm。进一步地，在坐姿等遮挡更强、远距离小视差更敏感的场景下，级联范式易受稠密深度误匹配与关节采样不稳定影响（例如 级联基线2 的 $200.5$\,mm 降至本文方法的 $132.6$\,mm，降低 $67.9$\,mm），而本文通过端到端的双目特征交互与可微几何求解将计算集中于关节相关区域，从而获得更稳定的三维定位精度。
 
-采用学习式双目深度网络（RTMO+MobileStereoNet）替代传统匹配时，深度估计模块本身引入了额外的网络参数与计算量，使得整体 FLOPs 显著上升至 116.12\,G；而本文方法以端到端神经网络完成双目特征交互与关节级几何求解，在 13.93\,G FLOPs 下取得了最优精度。
+采用学习式双目深度网络（级联基线2）替代传统匹配时，深度估计模块本身引入了额外的网络参数与计算量，使得整体 FLOPs 显著上升至 116.12\,G；而本文方法以端到端神经网络完成双目特征交互与关节级几何求解，在 13.93\,G FLOPs 下取得了最优精度。
 
 \paragraph{跨数据集泛化（RT-Pose $\rightarrow$ MADS）}
 为进一步检验本文方法对不同动作分布与采集协议的域外鲁棒性，本文将第三章在 RT-Pose 上训练得到的最终权重不做任何微调，直接在 MADS 数据集\citess{zhang2017mads}上进行测试。
@@ -1107,8 +961,8 @@ Simple Baseline~\citess{martinez2017simple} & 102.1 \\
 JointFormer~\citess{lutz2022jointformer} & 83.67 \\
 RTMW3D~\citess{jiang2024rtmw} & 69.6 \\
 DMCPose~\citess{zhang2024dmcpose} & 102.4 \\
-RTMO~\citess{lu2024rtmo}+SGBM$^\dagger$~\citess{hirschmuller2005accurate} & 58.0 \\
-RTMO~\citess{lu2024rtmo}+MobileStereoNet~\citess{shamsafar2022mobilestereonet} & 51.2 \\
+级联基线1$^\dagger$~\citess{lu2024rtmo,hirschmuller2005accurate} & 58.0 \\
+级联基线2~\citess{lu2024rtmo,shamsafar2022mobilestereonet} & 51.2 \\
 本文方法 & 33.68 \\
 \bottomrule
 \end{tabular}
@@ -1127,7 +981,7 @@ RTMO~\citess{lu2024rtmo}+MobileStereoNet~\citess{shamsafar2022mobilestereonet} &
 \end{figure}
 
 \paragraph{多人场景效率与可扩展性}
-表~\ref{tab:latency_vs_people} 表明，本文方法在 1 人到 10 人场景下的端到端推理时延仅由 116.0\,ms 增至 117.3\,ms，近似保持人数无关；相比之下，RTMW3D 由于包含逐实例裁剪与回归，时延随人数显著上升，而 RTMO+MobileStereoNet 虽也保持近似恒定，但整体仍稳定慢于本文方法。该结果说明本文的主要计算仍集中在整图前向与稀疏关节级三维求解上，因此能够在保持较好精度的同时获得更稳定的多人场景可扩展性。
+表~\ref{tab:latency_vs_people} 表明，本文方法在 1 人到 10 人场景下的端到端推理时延仅由 116.0\,ms 增至 117.3\,ms，近似保持人数无关；相比之下，RTMW3D 由于包含逐实例裁剪与回归，时延随人数显著上升，而 级联基线2 虽也保持近似恒定，但整体仍稳定慢于本文方法。该结果说明本文的主要计算仍集中在整图前向与稀疏关节级三维求解上，因此能够在保持较好精度的同时获得更稳定的多人场景可扩展性。
 
 \begin{table}[htbp]
   \centering
@@ -1140,7 +994,7 @@ RTMO~\citess{lu2024rtmo}+MobileStereoNet~\citess{shamsafar2022mobilestereonet} &
     \midrule
     本文方法（双目，自底向上） & 116.0 & 116.9 & 117.3 \\
     RTMW3D（单目，自顶向下） & 436.5 & 1236.8 & 2396.4 \\
-    RTMO+MobileStereoNet（级联范式） & 189.2 & 189.2 & 189.2 \\
+    级联基线2（级联范式） & 189.2 & 189.2 & 189.2 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1263,11 +1117,11 @@ RTMO~\citess{lu2024rtmo}+MobileStereoNet~\citess{shamsafar2022mobilestereonet} &
 
 实验结果表明，本文方法在 RT-Pose 这一真实复杂双目场景基准上达到 $158.6$\,mm 的平均绝对 MPJPE，相较最优级联范式降低 $43.4$\,mm；同时，在 Xiaomi\,14 上从 1 人到 10 人场景的端到端时延仅增加 $1.3$\,ms，体现出自底向上整图推理链路在多人场景下的稳定可扩展性。
 
-第三章的关键贡献在于证明：在不依赖稠密深度中间表示的前提下，双目三维人体姿态估计可以围绕关节级几何恢复任务被重构为“非对称特征提取 + 极线约束交互 + 可微三维求解”的统一端到端链路，并在真实复杂双目场景中实现精度与效率兼顾。更细粒度的部署资源指标，如平台侧内存占用与功耗/能耗特征，将在第四章 Jetson AGX Xavier 平台验证中进一步补充。这也为下一章进一步开展硬件感知部署与量化压缩提供了方法基础。
+第三章的关键贡献在于证明：在不依赖稠密深度中间表示的前提下，双目三维人体姿态估计可以围绕关节级几何恢复任务被重构为“非对称特征提取 + 极线约束交互 + 可微三维求解”的统一端到端链路，并在真实复杂双目场景中实现精度与效率兼顾。更细粒度的部署资源指标，如平台侧内存占用与功耗/能耗特征，将在第四章 Jetson AGX Xavier 平台验证中进一步补充。这也为下一章进一步开展面向端侧实时推理的混合精度量化部署提供了方法基础。
 \newpage
-\section{硬件感知部署与量化压缩}
+\section{面向端侧实时推理的混合精度量化部署方法}
 
-本章面向第三章所提轻量化双目三维人体姿态估计框架的端侧落地问题，围绕 Snapdragon~8~Gen3 CPU 平台上的硬件感知部署与量化压缩展开研究，并进一步在 NVIDIA Jetson AGX Xavier 嵌入式 GPU 平台上开展跨平台验证。研究重点不在于比较不同硬件后端，而在于针对既定端侧执行环境，建立从性能瓶颈定位到混合精度设计与实证验证的完整方法链。本文首先通过实测延迟拆解与 Roofline 分析定位性能瓶颈，随后结合量化敏感性分析设计分层混合精度方案，并通过后训练量化完成部署，最终以对比实验与消融实验评估量化后的精度--效率综合表现，并给出 Jetson 平台的资源与能耗实测。
+本章面向第三章所提轻量化双目三维人体姿态估计框架的端侧落地问题，围绕 Snapdragon~8~Gen3 CPU 平台上的端侧实时推理混合精度量化部署展开研究，并进一步在 NVIDIA Jetson AGX Xavier 嵌入式 GPU 平台上开展跨平台验证。研究重点不在于比较不同硬件后端，而在于针对既定端侧执行环境，建立从性能瓶颈定位到混合精度设计与实证验证的完整方法链。本文首先通过实测延迟拆解与 Roofline 分析定位性能瓶颈，随后结合量化敏感性分析设计分层混合精度方案，并通过后训练量化完成部署，最终以对比实验与消融实验评估量化后的精度--效率综合表现，并给出 Jetson 平台的资源与能耗实测。
 
 \subsection{研究背景}
 多人三维人体姿态估计正从离线精度导向的算法研究转向端侧实时应用。在移动机器人、智能安防与沉浸式交互等场景中，系统不仅需要满足严格时延约束，还需尽量避免原始图像上传云端带来的隐私风险与网络依赖，因此如何在移动端或嵌入式设备上稳定运行三维姿态估计模型，已成为影响其实用化的重要问题\citess{yuan2024aiotinfercn}。边缘智能协同推理综述进一步表明，端侧实时化不仅是模型参数规模问题，还涉及算子形式、访存模式、任务划分与硬件友好性等工程约束\citess{wang2023edgecollabcn}。
@@ -1525,7 +1379,7 @@ $B_{\text{eff}}\approx40\,\text{GB/s}$。由此屋脊点为
   \renewcommand{\algorithmicrequire}{Input:}
   \renewcommand{\algorithmicensure}{Output:}
   \begin{algorithmic}[1]
-    \REQUIRE 浮点模型 $\mathcal{M}_{fp}$；代表性校准集 $\mathcal{D}_{cal}$（256 组双目样本）；可量化层集合 $\mathcal{L}_q$；直方图 bin 数 $B$；INT8 量化级数 $Q=128$
+    \REQUIRE \parbox[t]{0.82\linewidth}{浮点模型 $\mathcal{M}_{fp}$；代表性校准集 $\mathcal{D}_{cal}$（256 组双目样本）；\\可量化层集合 $\mathcal{L}_q$；直方图 bin 数 $B$；INT8 量化级数 $Q=128$}
     \ENSURE 各层量化参数表 $\mathcal{T}=\{(s_l,c_l)\mid l\in\mathcal{L}_q\}$
     \STATE 根据 4.2.3 节敏感性分析，移除 EFEM scores、热力图/置信度输出与 DWT，得到低敏感可量化层集合 $\mathcal{L}_q$
     \FOR{each $l \in \mathcal{L}_q$}
