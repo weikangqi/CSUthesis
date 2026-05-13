@@ -90,16 +90,16 @@
 % -----------------------------------------------%
 \pagenumbering{Roman} % 重摘要至目录部分页码为大写罗马字体
 \setcounter{page}{1} % 页码从I重新开始
-%\phantomsection                %% 解决目录中超链接地址错误问题
-%\addcontentsline{toc}{section}{摘要} %%增加摘要至目录且与第一章对齐
+\phantomsection                %% 解决目录中超链接地址错误问题
+\addcontentsline{toc}{section}{摘要} %%增加摘要至目录且与第一章对齐
 \include{content/abstractcn}
 \clearpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 英文摘要
 % -----------------------------------------------%
-%\phantomsection                %% 解决目录中超链接地址错误问题
-%\addcontentsline{toc}{section}{ABSTRACT}
+\phantomsection                %% 解决目录中超链接地址错误问题
+\addcontentsline{toc}{section}{ABSTRACT}
 \include{content/abstracten}
 \clearpage
 
@@ -108,8 +108,8 @@
 {
 	\renewcommand*{\baselinestretch}{1.3841}   % 行间距20pt
 	\renewcommand{\contentsname}{\vspace{10pt} \hfill \heiti \bfseries \zihao{3} 目\quad 录\hfill ~\\}
-	%\phantomsection                %% 解决目录中超链接地址错误问题
-	%\addcontentsline{toc}{section}{目录} % 在目录中添加目录页码.
+	\phantomsection                %% 解决目录中超链接地址错误问题
+	\addcontentsline{toc}{section}{目录} % 在目录中添加目录页码.
 	\tableofcontents
 }
 \clearpage
@@ -123,8 +123,8 @@
 	\vspace{-10pt}
 	\renewcommand{\listfigurename}{\hfill \heiti \zihao{3} 插图索引\hfill ~\\}  
 	% 在目录中添加插图索引页码，按需确定是否注释下面两行
-	%\phantomsection                %% 解决目录中超链接地址错误问题
-	%\addcontentsline{toc}{section}{插图索引} 
+	\phantomsection                %% 解决目录中超链接地址错误问题
+	\addcontentsline{toc}{section}{插图索引}
 	%%设置插图索引的 图 标签
 	\let\oldnumberline\numberline%
 	\renewcommand{\numberline}{\figurename~\oldnumberline}
@@ -143,8 +143,8 @@
 	\vspace{-10pt}
 	\renewcommand{\listtablename}{\hfill \heiti \zihao{3} 表格索引\hfill ~\\}  
 	 % 在目录中添加表格索引页码，按需确定是否注释下面两行
-	 %\phantomsection                %% 解决目录中超链接地址错误问题
-	%\addcontentsline{toc}{section}{表格索引}
+	\phantomsection                %% 解决目录中超链接地址错误问题
+	\addcontentsline{toc}{section}{表格索引}
 	%%设置表格索引的 表 标签
 	\let\oldnumberline\numberline%
 	\renewcommand{\numberline}{\tablename~\oldnumberline}
